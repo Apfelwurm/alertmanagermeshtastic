@@ -1,10 +1,9 @@
-# Alertmanager webhook for Telegram (Python Version)
+# Alertmanager webhook for meshtastic (Python Version)
 
-![Docker Image CI](https://github.com/nopp/alertmanager-webhook-telegram-python/workflows/Docker%20Image%20CI/badge.svg)
-![Code scanning - action](https://github.com/nopp/alertmanager-webhook-telegram-python/workflows/Code%20scanning%20-%20action/badge.svg)
+![Docker Image CI](https://github.com/apfelwurm/alertmanager-webhook-meshtastic-python/workflows/Docker%20Image%20CI/badge.svg)
+![Code scanning - action](https://github.com/apfelwurm/alertmanager-webhook-meshtastic-python/workflows/Code%20scanning%20-%20action/badge.svg)
 
-GO Version (https://github.com/nopp/alertmanager-webhook-telegram-go)
-
+based on the work of https://github.com/nopp/alertmanager-webhook-telegram-python
 Python version 3
 
 ## INSTALL
@@ -13,9 +12,6 @@ Python version 3
 
 Change on flaskAlert.py
 =======================
-* botToken
-* chatID
-
 If you'll use with authentication, change too
 
 * XXXUSERNAME
@@ -29,20 +25,14 @@ Alertmanager configuration example
 ==================================
 
 	receivers:
-	- name: 'telegram-webhook'
+	- name: 'meshtastic-webhook'
 	  webhook_configs:
 	  - url: http://ipFlaskAlert:9119/alert
 	    send_resolved: true
 	    http_config:
 	      basic_auth:
-		username: 'admin'
-		password: 'password'
-
-One way to get the chat ID
-==========================
-1) Access https://web.telegram.org/
-2) Click to specific chat to the left
-3) At the url, you can get the chat ID(Ex: https://web.telegram.org/#/im?p=g1234567, so the chatID is 1234567)
+		username: 'XXXUSERNAME'
+		password: 'XXXPASSWORD'
 
 Running
 =======
@@ -51,15 +41,14 @@ Running
 Running on docker
 =================
     git clone https://github.com/nopp/alertmanager-webhook-telegram.git
-    cd alertmanager-webhook-telegram/docker/
-    docker build -t alertmanager-webhook-telegram:1.0 .
+    cd alertmanager-webhook-telegram
+    docker build -f docker/Dockerfile -t alertmanager-webhook-meshtastic-python:latest .
 
-    docker run -d --name telegram-bot \
-    	-e "bottoken=telegramBotToken" \
-    	-e "chatid=telegramChatID" \
+    docker run -d --name alertmanager-webhook-meshtastic-python \
+		--device=/dev/ttyACM0 \
     	-e "username=<username>" \
     	-e "password=<password>" \
-    	-p 9119:9119 alertmanager-webhook-telegram:1.0
+    	-p 9119:9119 alertmanager-webhook-meshtastic-python:latest
 
 Example to test
 ===============
