@@ -20,10 +20,10 @@ app.config['BASIC_AUTH_PASSWORD'] = os.getenv('password')
 
 def onreceive(packet, interface):  # pylint: disable=unused-argument
     """called when a packet arrives"""
-    print(f"Received: {packet}")
+    app.logger.debug("\treceived: %s",packet)
     try:
         interface.getNode(nodeID, False).iface.waitForAckNak()
-        print(f"ack")
+        app.logger.debug("\t ack: %s",packet)
     except Exception as error:
         app.logger.error("\trecverror: %s",error)
 
