@@ -4,6 +4,7 @@ from dateutil import parser
 from flask import Flask
 from flask import request
 from flask_basicauth import BasicAuth
+from pubsub import pub
 
 app = Flask(__name__)
 app.secret_key = 'changeKeyHeere'
@@ -16,6 +17,18 @@ nodeID = int(os.getenv('nodeID'))
 app.config['BASIC_AUTH_FORCE'] = os.getenv('auth')
 app.config['BASIC_AUTH_USERNAME'] = os.getenv('username')
 app.config['BASIC_AUTH_PASSWORD'] = os.getenv('password')
+
+def onreceive(packet, interface):  # pylint: disable=unused-argument
+    """called when a packet arrives"""
+    print(f"Received: {packet}")
+    try:
+        interface.getNode(nodeID, False).iface.waitForAckNak()
+        print(f"ack")
+    except Exception as error:
+        app.logger.error("\trecverror: %s",error)
+
+
+pub.subscribe(onreceive, "meshtastic.receive")
 
 
 @app.route('/alert', methods = ['POST'])
@@ -46,8 +59,7 @@ def postalertmanager():
                 message += "Started: "+correctDate
             app.logger.info("\t%s",message)
             interface.sendText(message, nodeID)
-            # interface.sendText(message, nodeID, True)
-            # interface.getNode(nodeID, False).iface.waitForAckNak()
+            interface.sendText(message, nodeID, True)
             return "Alert OK", 200
     except Exception as error:
         app.logger.error("\t%s",error)
