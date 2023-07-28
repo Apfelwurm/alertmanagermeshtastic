@@ -8,6 +8,7 @@ from pubsub import pub
 
 app = Flask(__name__)
 app.secret_key = 'changeKeyHeere'
+app.logger.setLevel(logging.DEBUG)
 basic_auth = BasicAuth(app)
 
 # # Yes need to have -, change it!
