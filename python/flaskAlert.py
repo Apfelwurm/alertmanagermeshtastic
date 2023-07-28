@@ -6,9 +6,9 @@ from flask import request
 from flask_basicauth import BasicAuth
 from pubsub import pub
 
+
 app = Flask(__name__)
 app.secret_key = 'changeKeyHeere'
-app.logger.setLevel(logging.DEBUG)
 basic_auth = BasicAuth(app)
 
 # # Yes need to have -, change it!
@@ -29,7 +29,6 @@ def onreceive(packet, interface):  # pylint: disable=unused-argument
     #     app.logger.error("\trecverror: %s",error)
 
 
-pub.subscribe(onreceive, "meshtastic.receive")
 
 
 @app.route('/alert', methods = ['POST'])
@@ -69,5 +68,6 @@ def postalertmanager():
         interface.close()
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
+    pub.subscribe(onreceive, "meshtastic.receive")
     app.run(host='0.0.0.0', port=9119)
