@@ -3,6 +3,8 @@ name: Update Docker Hub Description
 on:
   push:
     branches: [ main ]
+    paths:
+    - 'README.md'
   workflow_dispatch: # Allows action to be run manually from the Actions tab
 
 jobs:

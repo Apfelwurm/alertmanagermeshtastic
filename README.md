@@ -1,7 +1,6 @@
 # Alertmanager webhook for meshtastic (Python Version)
 
-![Docker Image CI](https://github.com/apfelwurm/alertmanager-webhook-meshtastic-python/workflows/Docker%20Image%20CI/badge.svg)
-![Code scanning - action](https://github.com/apfelwurm/alertmanager-webhook-meshtastic-python/workflows/Code%20scanning%20-%20action/badge.svg)
+[![linux/amd64](https://github.com/Apfelwurm/alertmanager-webhook-meshtastic-python/actions/workflows/build-linux-image.yml/badge.svg)](https://github.com/Apfelwurm/alertmanager-webhook-meshtastic-python/actions/workflows/build-linux-image.yml)
 
 based on the work of https://github.com/nopp/alertmanager-webhook-telegram-python
 Python version 3
