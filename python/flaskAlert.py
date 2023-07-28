@@ -1,5 +1,5 @@
 import meshtastic, meshtastic.serial_interface
-import json, logging
+import json, logging, os
 from dateutil import parser
 from flask import Flask
 from flask import request
@@ -10,12 +10,12 @@ app.secret_key = 'changeKeyHeere'
 basic_auth = BasicAuth(app)
 
 # # Yes need to have -, change it!
-# chatID = "-xchatIDx"
+nodeID = int(os.getenv('nodeID'))
 
 # Authentication conf, change it!
-app.config['BASIC_AUTH_FORCE'] = True
-app.config['BASIC_AUTH_USERNAME'] = 'XXXUSERNAME'
-app.config['BASIC_AUTH_PASSWORD'] = 'XXXPASSWORD'
+app.config['BASIC_AUTH_FORCE'] = os.getenv('auth')
+app.config['BASIC_AUTH_USERNAME'] = os.getenv('username')
+app.config['BASIC_AUTH_PASSWORD'] = os.getenv('password')
 
 
 @app.route('/alert', methods = ['POST'])
@@ -45,8 +45,9 @@ def postalertmanager():
                 correctDate = parser.parse(alert['startsAt']).strftime('%Y-%m-%d %H:%M:%S')
                 message += "Started: "+correctDate
             app.logger.info("\t%s",message)
-            interface.sendText(message, 631724152, True)
-            interface.getNode(631724152, False).iface.waitForAckNak()
+            interface.sendText(message, nodeID)
+            # interface.sendText(message, nodeID, True)
+            # interface.getNode(nodeID, False).iface.waitForAckNak()
             return "Alert OK", 200
     except Exception as error:
         app.logger.error("\t%s",error)

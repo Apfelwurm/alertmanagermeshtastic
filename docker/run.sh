@@ -1,5 +1,12 @@
 #!/bin/bash
 
+if [ "x" == "x$nodeID" ]; then
+  echo "error: nodeID is not set"
+  exit 100
+else
+  echo "nodeID is $nodeID"
+fi
+
 if [ "x" == "x$username" ]; then
   echo "warning: username is not set"
 else
@@ -12,7 +19,11 @@ else
   echo "password is set (not visible)"
 fi
 
-sed -i s/XXXUSERNAME/"$username"/ flaskAlert.py
-sed -i s/XXXPASSWORD/"$password"/ flaskAlert.py
+if [ "x" == "x$auth" ]; then
+  echo "warning: auth is not set, disabling auth"
+  export auth=false
+else
+  echo "auth is set to $auth"
+fi
 
 /usr/bin/gunicorn -w 4 -b 0.0.0.0:9119 flaskAlert:app

@@ -9,17 +9,6 @@ Python version 3
 
 * pip install -r requirements.txt
 
-Change on flaskAlert.py
-=======================
-If you'll use with authentication, change too
-
-* XXXUSERNAME
-* XXXPASSWORD
-
-Disabling authentication
-========================
-On flaskAlert.py change app.config['BASIC_AUTH_FORCE'] = True to app.config['BASIC_AUTH_FORCE'] = False
-
 Alertmanager configuration example
 ==================================
 
@@ -41,6 +30,8 @@ Running on docker
 =================
     docker run -d --name alertmanager-webhook-meshtastic-python \
 		--device=/dev/ttyACM0 \
+    	-e "nodeID=123456789" \
+    	-e "auth=true" \
     	-e "username=XXXUSERNAME" \
     	-e "password=XXXPASSWORD" \
     	-p 9119:9119 apfelwurm/alertmanager-webhook-meshtastic-python:latest
