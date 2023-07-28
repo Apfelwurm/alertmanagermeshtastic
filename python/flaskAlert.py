@@ -19,6 +19,8 @@ app.config['BASIC_AUTH_FORCE'] = os.getenv('auth')
 app.config['BASIC_AUTH_USERNAME'] = os.getenv('username')
 app.config['BASIC_AUTH_PASSWORD'] = os.getenv('password')
 
+interface =  meshtastic.serial_interface.SerialInterface(os.getenv('meshtty'))
+
 
 
 def onreceive(packet, interface):  # pylint: disable=unused-argument
@@ -37,7 +39,6 @@ def meshthread():
 
 with app.app_context():
     app.logger.setLevel(logging.DEBUG)
-    interface =  meshtastic.serial_interface.SerialInterface(os.getenv('meshtty'))
     threading.Thread(target=meshthread, daemon=True).start()
     app.logger.debug("\thallo")
 
