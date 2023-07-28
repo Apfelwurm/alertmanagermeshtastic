@@ -26,11 +26,11 @@ interface =  meshtastic.serial_interface.SerialInterface(os.getenv('meshtty'))
 def onreceive(packet, interface):  # pylint: disable=unused-argument
     """called when a packet arrives"""
     app.logger.debug("\treceived: %s",packet)
-    # try:
-    #     interface.getNode(nodeID, False).iface.waitForAckNak()
-    #     app.logger.debug("\t ack: %s",packet)
-    # except Exception as error:
-    #     app.logger.error("\trecverror: %s",error)
+    try:
+        interface.getNode(nodeID, False).iface.waitForAckNak()
+        app.logger.debug("\t ack: %s",packet)
+    except Exception as error:
+        app.logger.error("\trecverror: %s",error)
 
 
 def meshthread():
