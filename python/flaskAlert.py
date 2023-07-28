@@ -58,8 +58,8 @@ def postalertmanager():
             elif alert['status'] == "firing":
                 correctDate = parser.parse(alert['startsAt']).strftime('%Y-%m-%d %H:%M:%S')
                 message += "Started: "+correctDate
-            app.logger.info("\t%s",message)
-            interface.sendText(message, nodeID)
+            # app.logger.info("\t%s",message)
+            # interface.sendText(message, nodeID)
             interface.sendText(message, nodeID, True)
             return "Alert OK", 200
     except Exception as error:
