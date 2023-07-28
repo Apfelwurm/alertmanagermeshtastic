@@ -5,7 +5,7 @@ from flask import Flask
 from flask import request
 from flask_basicauth import BasicAuth
 from pubsub import pub
-
+import threading
 
 app = Flask(__name__)
 app.secret_key = 'changeKeyHeere'
@@ -19,6 +19,9 @@ app.config['BASIC_AUTH_FORCE'] = os.getenv('auth')
 app.config['BASIC_AUTH_USERNAME'] = os.getenv('username')
 app.config['BASIC_AUTH_PASSWORD'] = os.getenv('password')
 
+interface =  meshtastic.serial_interface.SerialInterface(os.getenv('meshtty'))
+
+
 def onreceive(packet, interface):  # pylint: disable=unused-argument
     """called when a packet arrives"""
     app.logger.debug("\treceived: %s",packet)
@@ -29,14 +32,20 @@ def onreceive(packet, interface):  # pylint: disable=unused-argument
     #     app.logger.error("\trecverror: %s",error)
 
 
+def meshthread():
+    pub.subscribe(onreceive, "meshtastic.receive")
+    app.logger.debug("\thallofromthread")
 
+with app.app_context():
+    app.logger.setLevel(logging.DEBUG)
+    threading.Thread(target=meshthread, daemon=True).start()
+    app.logger.debug("\thallo")
 
 @app.route('/alert', methods = ['POST'])
 def postalertmanager():
 
     try:
         # define the serial interface
-        interface =  meshtastic.serial_interface.SerialInterface()
         # get content
         content = json.loads(request.get_data())
         for alert in content['alerts']:
@@ -64,11 +73,6 @@ def postalertmanager():
     except Exception as error:
         app.logger.error("\t%s",error)
         return "Alert fail", 200
-    finally:
-        interface.close()
 
 if __name__ == '__main__':
-    app.logger.setLevel(logging.DEBUG)
-    pub.subscribe(onreceive, "meshtastic.receive")
-    app.logger.debug("\thallo")
     app.run(host='0.0.0.0', port=9119)
