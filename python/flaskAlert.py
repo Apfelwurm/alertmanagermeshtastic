@@ -68,6 +68,7 @@ def postalertmanager():
         interface.close()
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    app.logger.setLevel(logging.DEBUG)
     pub.subscribe(onreceive, "meshtastic.receive")
+    app.logger.debug("\thallo")
     app.run(host='0.0.0.0', port=9119)
