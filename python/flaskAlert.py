@@ -45,11 +45,11 @@ def postalertmanager():
                 correctDate = parser.parse(alert['startsAt']).strftime('%Y-%m-%d %H:%M:%S')
                 message += "Started: "+correctDate
             app.logger.info("\t%s",message)
-            interface.sendText(message, 631724152)
+            interface.sendText(message, 631724152, True)
+            interface.getNode(631724152, False).iface.waitForAckNak()
             return "Alert OK", 200
     except Exception as error:
-        interface.sendText("Error: "+str(error), 631724152)
-        app.logger.info("\t%s",error)
+        app.logger.error("\t%s",error)
         return "Alert fail", 200
     finally:
         interface.close()
