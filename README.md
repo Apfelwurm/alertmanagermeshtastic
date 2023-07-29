@@ -28,20 +28,20 @@ To integrate this bridge into your composed prometheus/alertmanager cluster, thi
 If you plan to use a virtual serial port that is provided with socat (for example /tmp/vcom0), you have to use a volume mount instead of the device binding:
 
 ```
-	alertmanager-meshtastic:
-		image: apfelwurm/alertmanager-webhook-meshtastic-python
-		ports:
-		- 9119:9119
-		volumes:
-		- /tmp/vcom0:/tmp/vcom0
-		environment:
-		- meshtty=/tmp/vcom0
-		- nodeID=631724152
-		- auth=true
-		- username=XXXUSERNAME
-		- password=XXXPASSWORD
-		- loglevel=WARNING
-		restart: always
+    alertmanager-meshtastic:
+      image: apfelwurm/alertmanager-webhook-meshtastic-python
+      ports:
+        - 9119:9119
+      volumes:
+        - /tmp/vcom0:/tmp/vcom0
+      environment:
+        - meshtty=/tmp/vcom0
+        - nodeID=631724152
+        - auth=true
+        - username=XXXUSERNAME
+        - password=XXXPASSWORD
+        - loglevel=WARNING
+      restart: always
 ```
 
 ##  docker compose service example - Virtual Serial
@@ -50,20 +50,20 @@ To integrate this bridge into your composed prometheus/alertmanager cluster, thi
 If you plan to use a virtual serial port that is provided with socat (for example /tmp/vcom0), you have to use a volume mount instead of the device binding:
 
 ```
-	alertmanager-meshtastic:
-		image: apfelwurm/alertmanager-webhook-meshtastic-python
-		ports:
-		- 9119:9119
-		volumes:
-		- /tmp/vcom0:/tmp/vcom0
-		environment:
-		- meshtty=/tmp/vcom0
-		- nodeID=631724152
-		- auth=true
-		- username=XXXUSERNAME
-		- password=XXXPASSWORD
-		- loglevel=WARNING
-		restart: always
+    alertmanager-meshtastic:
+      image: apfelwurm/alertmanager-webhook-meshtastic-python
+      ports:
+        - 9119:9119
+      volumes:
+        - /tmp/vcom0:/tmp/vcom0
+      environment:
+        - meshtty=/tmp/vcom0
+        - nodeID=631724152
+        - auth=true
+        - username=XXXUSERNAME
+        - password=XXXPASSWORD
+        - loglevel=WARNING
+      restart: always
 ```
 
 
