@@ -24,8 +24,10 @@ data_queue = queue.Queue()
 # Worker function that processes the queue
 def process_queue():
     while True:
-        try:
-            alert = data_queue.get()
+        app.logger.debug("\t currently %d items in the queue", data_queue.qsize())
+        alert = data_queue.get()
+
+        if alert:
             try:
                 app.logger.debug("\t queue working on %s", alert["fingerprint"])
 
@@ -66,7 +68,7 @@ def process_queue():
 
             for chunk in chunks:
                 for attempt in range(max_sending_attempts):
-                    app.logger.debug("\sending chunk attempt %d :%s ", attempt, chunk)
+                    app.logger.debug("\tsending chunk attempt %d :%s ", attempt, chunk)
                     try:
                         interface = meshtastic.serial_interface.SerialInterface(
                             os.getenv("meshtty")
@@ -79,7 +81,7 @@ def process_queue():
                             interface.getNode(nodeID, False).onAckNak,
                         )
                         interface.waitForAckNak()
-                        app.logger.debug("\sending chunk attempt %d success ", attempt)
+                        app.logger.debug("\tsending chunk attempt %d success ", attempt)
                         break
                     except Exception as e:
                         app.logger.error(
@@ -92,8 +94,6 @@ def process_queue():
                     finally:
                         interface.close()
             data_queue.task_done()
-        except queue.Empty:
-            break
 
 
 # Thread to run the worker function
