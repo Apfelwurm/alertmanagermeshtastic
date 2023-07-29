@@ -23,25 +23,25 @@ interface =  meshtastic.serial_interface.SerialInterface(os.getenv('meshtty'))
 
 
 
-def onreceive(packet, interface):  # pylint: disable=unused-argument
-    """called when a packet arrives"""
-    app.logger.debug("\treceived: %s",packet)
-    try:
-        # interface.getNode(nodeID, False).iface.waitForAckNak()
-        interface.waitForAckNak()
-        app.logger.debug("\t ack: %s",packet)
-    except Exception as error:
-        app.logger.error("\trecverror: %s",error)
+# def onreceive(packet, interface):  # pylint: disable=unused-argument
+#     """called when a packet arrives"""
+#     app.logger.debug("\treceived: %s",packet)
+#     try:
+#         # interface.getNode(nodeID, False).iface.waitForAckNak()
+#         interface.waitForAckNak()
+#         app.logger.debug("\t ack: %s",packet)
+#     except Exception as error:
+#         app.logger.error("\trecverror: %s",error)
 
 
-def meshthread():
-    pub.subscribe(onreceive, "meshtastic.receive")
-    app.logger.debug("\thallofromthread")
+# def meshthread():
+#     pub.subscribe(onreceive, "meshtastic.receive")
+#     app.logger.debug("\thallofromthread")
 
 with app.app_context():
     app.logger.setLevel(logging.DEBUG)
-    threading.Thread(target=meshthread, daemon=True).start()
-    app.logger.debug("\thallo")
+    # threading.Thread(target=meshthread, daemon=True).start()
+    # app.logger.debug("\thallo")
 
 @app.route('/alert', methods = ['POST'])
 def postalertmanager():
@@ -70,7 +70,9 @@ def postalertmanager():
                 message += "Started: "+correctDate
             # app.logger.info("\t%s",message)
             # interface.sendText(message, nodeID)
-            interface.sendText(message, nodeID, True)
+            app.logger.debug("\tMessage:%s", message)
+            interface.sendText(message, nodeID, True,False,interface.getNode(nodeID, False).onAckNak)
+            interface.waitForAckNak()
             return "Alert OK", 200
     except Exception as error:
         app.logger.error("\t%s",error)
