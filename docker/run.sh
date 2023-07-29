@@ -33,4 +33,4 @@ else
   echo "maxsendingattempts is set to $maxsendingattempts"
 fi
 
-/usr/bin/gunicorn -w 4 -b 0.0.0.0:9119 flaskAlert:app
+/usr/bin/gunicorn -w 1 -b 0.0.0.0:9119 flaskAlert:app
