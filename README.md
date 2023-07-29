@@ -40,7 +40,7 @@ If you plan to use a virtual serial port that is provided with socat (for exampl
 		- auth=true
 		- username=XXXUSERNAME
 		- password=XXXPASSWORD
-    	- loglevel=WARNING
+		- loglevel=WARNING
 		restart: always
 ```
 
@@ -62,7 +62,7 @@ If you plan to use a virtual serial port that is provided with socat (for exampl
 		- auth=true
 		- username=XXXUSERNAME
 		- password=XXXPASSWORD
-    	- loglevel=WARNING
+		- loglevel=WARNING
 		restart: always
 ```
 
