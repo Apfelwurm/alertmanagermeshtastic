@@ -33,7 +33,7 @@ with app.app_context():
 
 def splitmessagesifnessecary(message):
     
-    chunk_size = 100
+    chunk_size = 199
     if len(message) > chunk_size:
         app.logger.debug("\tMessage to big, split to chunks")
         chunks = [message[i : i + chunk_size] for i in range(0, len(message), chunk_size)]
@@ -69,10 +69,10 @@ def postalertmanager():
                 message += "Info: " + alert["annotations"]["info"] + "\n"
             if "summary" in alert["annotations"]:
                 message += "Summary: " + alert["annotations"]["summary"] + "\n"
-            if "description" in alert["annotations"]:
-                message += (
-                    "Description: " + alert["annotations"]["description"] + "\n"
-                )
+            # if "description" in alert["annotations"]:
+            #     message += (
+            #         "Description: " + alert["annotations"]["description"] + "\n"
+            #     )
             if alert["status"] == "resolved":
                 correctdate = parser.parse(alert["endsAt"]).strftime(
                     "%Y-%m-%d %H:%M:%S"
