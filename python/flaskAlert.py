@@ -96,10 +96,8 @@ def process_queue():
             data_queue.task_done()
 
 
-# Thread to run the worker function
 worker_thread = threading.Thread(target=process_queue)
 worker_thread.daemon = True
-worker_thread.start()
 
 
 with app.app_context():
@@ -178,4 +176,5 @@ def postalertmanager():
 
 
 if __name__ == "__main__":
+    worker_thread.start()
     app.run(host="0.0.0.0", port=9119)
