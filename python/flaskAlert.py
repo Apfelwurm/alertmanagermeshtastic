@@ -1,5 +1,4 @@
 import meshtastic, meshtastic.serial_interface
-from meshtastic import mesh_pb2
 import json, logging, os
 from dateutil import parser
 from flask import Flask
@@ -33,20 +32,15 @@ with app.app_context():
 
 
 def splitmessagesifnessecary(message):
-    data = message.encode("utf-8")
-    chunk_size = mesh_pb2.Constants.DATA_PAYLOAD_LEN
-    if getattr(data, "SerializeToString", None):
-        data = data.SerializeToString()
-    else:
-        data = data
-
-    if len(data) > chunk_size:
+    
+    chunk_size = 100
+    if len(message) > chunk_size:
         app.logger.debug("\tMessage to big, split to chunks")
-        chunks = [data[i : i + chunk_size] for i in range(0, len(data), chunk_size)]
+        chunks = [message[i : i + chunk_size] for i in range(0, len(message), chunk_size)]
         return chunks
     else:
         app.logger.debug("\tMessage size okay")
-        return [data]
+        return [message]
 
 
 @app.route("/alert", methods=["POST"])
