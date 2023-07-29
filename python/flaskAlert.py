@@ -49,9 +49,16 @@ def postalertmanager():
         # define the serial interface
         # get content
         content = json.loads(request.get_data())
+        app.logger.debug("\t========================================================================================================")
         app.logger.debug("\tpost received")
+        app.logger.debug("\t%s", content)
+        app.logger.debug("\t========================================================================================================")
+
         for alert in content["alerts"]:
-            app.logger.debug("\talert: %s", content)
+            app.logger.debug("\t========================================================================================================")
+            app.logger.debug("\tprocessing alert")
+            app.logger.debug("\t %s", content)
+            app.logger.debug("\t========================================================================================================")
             message = "Status: " + alert["status"] + "\n"
             if "name" in alert["labels"]:
                 message += (
@@ -83,11 +90,13 @@ def postalertmanager():
                     "%Y-%m-%d %H:%M:%S"
                 )
                 message += "Started: " + correctdate
-            app.logger.debug("\tMessage:%s", message)
+            app.logger.debug("\t========================================================================================================")
+            app.logger.debug("\tFull message:")
+            app.logger.debug("\t%s", message)
+            app.logger.debug("\t========================================================================================================")
+
 
             chunks = splitmessagesifnessecary(message)
-            for chunk in chunks:
-                app.logger.debug("\returned chunk:%s", chunk)
             for chunk in chunks:
                 for attempt in range(max_sending_attempts):
                     app.logger.debug("\sending chunk attempt %d :%s ", attempt, chunk)
