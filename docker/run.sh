@@ -33,11 +33,4 @@ else
   echo "maxsendingattempts is set to $maxsendingattempts"
 fi
 
-if [ "x" == "x$maxchunksendingattempts" ]; then
-  echo "warning: maxchunksendingattempts is not set, set to default (5)"
-  export maxchunksendingattempts="5"
-else
-  echo "maxchunksendingattempts is set to $maxchunksendingattempts"
-fi
-
 /usr/bin/gunicorn -w 1 -b 0.0.0.0:9119 flaskAlert:app

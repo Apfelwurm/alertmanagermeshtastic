@@ -38,7 +38,6 @@ If you plan to use a virtual serial port that is provided with socat (for exampl
         - meshtty=/tmp/vcom0
         - nodeID=631724152
         - maxsendingattempts=5
-        - maxchunksendingattempts=5
         - auth=true
         - username=XXXUSERNAME
         - password=XXXPASSWORD
@@ -62,7 +61,6 @@ If you plan to use a virtual serial port that is provided with socat (for exampl
         - meshtty=/tmp/vcom0
         - nodeID=631724152
         - maxsendingattempts=5
-        - maxchunksendingattempts=5
         - auth=true
         - username=XXXUSERNAME
         - password=XXXPASSWORD
@@ -78,7 +76,6 @@ If you plan to use a virtual serial port that is provided with socat (for exampl
 		--device=/dev/ttyACM0 \
 		-e "meshtty=/dev/ttyACM0" \
       -e "maxsendingattempts=5" \
-      -e "maxchunksendingattempts=5" \
     	-e "nodeID=123456789" \
     	-e "auth=true" \
     	-e "username=XXXUSERNAME" \
@@ -97,7 +94,6 @@ If you plan to use a virtual serial port that is provided with socat (for exampl
 		-e "meshtty=/tmp/vcom0" \
     	-e "nodeID=123456789" \
       -e "maxsendingattempts=5" \
-      -e "maxchunksendingattempts=5" \
     	-e "auth=true" \
     	-e "username=XXXUSERNAME" \
     	-e "password=XXXPASSWORD" \
