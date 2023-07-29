@@ -54,7 +54,9 @@ def postalertmanager():
         # define the serial interface
         # get content
         content = json.loads(request.get_data())
+        app.logger.debug("\tpost content: %s", content)
         for alert in content["alerts"]:
+            app.logger.debug("\talert: %s", content)
             message = "Status: " + alert["status"] + "\n"
             if "name" in alert["labels"]:
                 message += (
