@@ -19,8 +19,52 @@ Thanks to [GUVWAF](https://github.com/GUVWAF) for the support and thanks to the 
 		username: 'XXXUSERNAME'
 		password: 'XXXPASSWORD'
 
+##  docker compose service example - Hardware Serial (default)
 
-##  Running on docker - Hardware Serial (default)
+To integrate this bridge into your composed prometheus/alertmanager cluster, this is a good startingpoint.
+If you plan to use a virtual serial port that is provided with socat (for example /tmp/vcom0), you have to use a volume mount instead of the device binding:
+
+```
+	alertmanager-meshtastic:
+		image: apfelwurm/alertmanager-webhook-meshtastic-python
+		ports:
+		- 9119:9119
+		volumes:
+		- /tmp/vcom0:/tmp/vcom0
+		environment:
+		- meshtty=/tmp/vcom0
+		- nodeID=631724152
+		- auth=true
+		- username=XXXUSERNAME
+		- password=XXXPASSWORD
+    	- loglevel=WARNING
+		restart: always
+```
+
+##  docker compose service example - Virtual Serial
+
+To integrate this bridge into your composed prometheus/alertmanager cluster, this is a good startingpoint.
+If you plan to use a virtual serial port that is provided with socat (for example /tmp/vcom0), you have to use a volume mount instead of the device binding:
+
+```
+	alertmanager-meshtastic:
+		image: apfelwurm/alertmanager-webhook-meshtastic-python
+		ports:
+		- 9119:9119
+		volumes:
+		- /tmp/vcom0:/tmp/vcom0
+		environment:
+		- meshtty=/tmp/vcom0
+		- nodeID=631724152
+		- auth=true
+		- username=XXXUSERNAME
+		- password=XXXPASSWORD
+    	- loglevel=WARNING
+		restart: always
+```
+
+
+##  Running on docker example - Hardware Serial (default)
 
 ```
     docker run -d --name alertmanager-webhook-meshtastic-python \
@@ -34,7 +78,7 @@ Thanks to [GUVWAF](https://github.com/GUVWAF) for the support and thanks to the 
     	-p 9119:9119 apfelwurm/alertmanager-webhook-meshtastic-python:latest
 ```
 
-##  Running on docker - Virtual Serial
+##  Running on docker example - Virtual Serial
 
 If you plan to use a virtual serial port that is provided with socat (for example /tmp/vcom0), you have to use a volume mount instead of the device binding:
 
@@ -50,7 +94,12 @@ If you plan to use a virtual serial port that is provided with socat (for exampl
     	-p 9119:9119 apfelwurm/alertmanager-webhook-meshtastic-python:latest
 ```
 
+## Contribution
 
-Example to test
-===============
+This is currently a minimal implementation that supports only a single node as a receiver. If you need additional features, you are welcome to open an issue, or even better, submit a pull request. I would appreciate any help.
+
+
+## Example to test
+```
 	curl -XPOST --data '{"status":"resolved","groupLabels":{"alertname":"instance_down"},"commonAnnotations":{"description":"i-0d7188fkl90bac100 of job ec2-sp-node_exporter has been down for more than 2 minutes.","summary":"Instance i-0d7188fkl90bac100 down"},"alerts":[{"status":"resolved","labels":{"name":"olokinho01-prod","instance":"i-0d7188fkl90bac100","job":"ec2-sp-node_exporter","alertname":"instance_down","os":"linux","severity":"page"},"endsAt":"2019-07-01T16:16:19.376244942-03:00","generatorURL":"http://pmts.io:9090","startsAt":"2019-07-01T16:02:19.376245319-03:00","annotations":{"description":"i-0d7188fkl90bac100 of job ec2-sp-node_exporter has been down for more than 2 minutes.","summary":"Instance i-0d7188fkl90bac100 down"}}],"version":"4","receiver":"infra-alert","externalURL":"http://alm.io:9093","commonLabels":{"name":"olokinho01-prod","instance":"i-0d7188fkl90bac100","job":"ec2-sp-node_exporter","alertname":"instance_down","os":"linux","severity":"page"}}' http://XXXUSERNAME:XXXPASSWORD@flaskAlert:9119/alert
+```
