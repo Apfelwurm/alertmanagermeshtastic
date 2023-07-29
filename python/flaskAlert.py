@@ -33,11 +33,12 @@ with app.app_context():
 
 
 def splitmessagesifnessecary(message):
+    data = message.encode("utf-8")
     chunk_size = mesh_pb2.Constants.DATA_PAYLOAD_LEN
-    if getattr(message, "SerializeToString", None):
-        data = message.SerializeToString()
+    if getattr(data, "SerializeToString", None):
+        data = data.SerializeToString()
     else:
-        data = message
+        data = data
 
     if len(data) > chunk_size:
         app.logger.debug("\tMessage to big, split to chunks")
