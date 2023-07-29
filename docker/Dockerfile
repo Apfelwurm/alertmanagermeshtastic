@@ -8,6 +8,7 @@ ENV username "XXXUSERNAME"
 ENV password "XXXPASSWORD"
 ENV loglevel "WARNING"
 ENV meshtty "/dev/ttyACM0"
+ENV maxsendingattempts "5"
 
 WORKDIR /alertmanager-webhook-meshtastic
 RUN adduser -D meshtastic && addgroup meshtastic dialout

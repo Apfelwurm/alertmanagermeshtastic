@@ -26,4 +26,11 @@ else
   echo "auth is set to $auth"
 fi
 
+if [ "x" == "x$maxsendingattempts" ]; then
+  echo "warning: maxsendingattempts is not set, set to default (5)"
+  export maxsendingattempts="5"
+else
+  echo "maxsendingattempts is set to $maxsendingattempts"
+fi
+
 /usr/bin/gunicorn -w 1 -b 0.0.0.0:9119 flaskAlert:app
