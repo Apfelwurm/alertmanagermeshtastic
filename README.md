@@ -4,6 +4,7 @@ This little Adapter receives alertmanager webhooks and sends the notifications v
 
 [![linux/amd64](https://github.com/Apfelwurm/alertmanager-webhook-meshtastic-python/actions/workflows/build-linux-image.yml/badge.svg)](https://github.com/Apfelwurm/alertmanager-webhook-meshtastic-python/actions/workflows/build-linux-image.yml)
 
+## Credits
 This container is based on the work of https://github.com/nopp/alertmanager-webhook-telegram-python
 Thanks to [GUVWAF](https://github.com/GUVWAF) for the support and thanks to the whole meshtastic team for this awsome software!
 
