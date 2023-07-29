@@ -57,7 +57,7 @@ def postalertmanager():
         for alert in content["alerts"]:
             app.logger.debug("\t========================================================================================================")
             app.logger.debug("\tprocessing alert")
-            app.logger.debug("\t %s", content)
+            app.logger.debug("\t %s", alert)
             app.logger.debug("\t========================================================================================================")
             message = "Status: " + alert["status"] + "\n"
             if "name" in alert["labels"]:
@@ -109,6 +109,7 @@ def postalertmanager():
                             interface.getNode(nodeID, False).onAckNak,
                         )
                         interface.waitForAckNak()
+                        app.logger.debug("\sending chunk attempt %d success ", attempt)
                         break
                     except Exception as e:
                         app.logger.error(
