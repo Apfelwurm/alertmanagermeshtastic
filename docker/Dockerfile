@@ -2,6 +2,13 @@ FROM alpine:3.18
 
 LABEL maintainer="Alexander Volz <Alexander@volzit.de>"
 
+ENV nodeID "123456789"
+ENV auth "true"
+ENV username "XXXUSERNAME"
+ENV password "XXXPASSWORD"
+ENV loglevel "WARNING"
+ENV meshtty "/dev/ttyACM0"
+
 WORKDIR /alertmanager-webhook-meshtastic
 RUN adduser -D meshtastic && addgroup meshtastic dialout
 RUN apk update \
