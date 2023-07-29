@@ -20,14 +20,22 @@ app.config["BASIC_AUTH_PASSWORD"] = os.getenv("password")
 # Create a single-threaded queue
 data_queue = queue.Queue()
 
-interface = meshtastic.serial_interface.SerialInterface(os.getenv("meshtty"))
-
 # Worker function that processes the queue
 def process_queue():
     while True:
         try:
+            interface = meshtastic.serial_interface.SerialInterface(os.getenv("meshtty"))
             alert = data_queue.get()          
             app.logger.debug("\t %s", alert["fingerprint"])
+            interface.sendText(
+                            alert["fingerprint"],
+                            nodeID,
+                            True,
+                            False,
+                            interface.getNode(nodeID, False).onAckNak,
+                        )
+            interface.waitForAckNak()
+            interface.close()
             data_queue.task_done()
         except queue.Empty:
             break
