@@ -54,7 +54,7 @@ def postalertmanager():
         # define the serial interface
         # get content
         content = json.loads(request.get_data())
-        app.logger.debug("\tpost content: %s", content)
+        app.logger.debug("\tpost received")
         for alert in content["alerts"]:
             app.logger.debug("\talert: %s", content)
             message = "Status: " + alert["status"] + "\n"
@@ -95,6 +95,7 @@ def postalertmanager():
                 app.logger.debug("\returned chunk:%s", chunk)
             for chunk in chunks:
                 for attempt in range(max_sending_attempts):
+                    app.logger.debug("\sending chunk attempt %d :%s ", attempt, chunk)
                     try:
                         interface.sendText(
                             chunk,
