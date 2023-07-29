@@ -66,8 +66,10 @@ def postalertmanager():
                     + alert["labels"]["name"]
                     + ")\n"
                 )
-            else:
+            elif "instance" in alert["labels"]:
                 message += "Instance: " + alert["labels"]["instance"] + "\n"
+            elif "alertname" in alert["labels"]:
+                message += "Alert: " + alert["labels"]["alertname"] + "\n"
             if "info" in alert["annotations"]:
                 message += "Info: " + alert["annotations"]["info"] + "\n"
             if "summary" in alert["annotations"]:
@@ -90,7 +92,7 @@ def postalertmanager():
 
             chunks = splitmessagesifnessecary(message)
             for chunk in chunks:
-                app.logger.debug("\returned chunk:%s", message)
+                app.logger.debug("\returned chunk:%s", chunk)
             for chunk in chunks:
                 for attempt in range(max_sending_attempts):
                     try:
