@@ -24,8 +24,8 @@ data_queue = queue.Queue()
 def process_queue():
     while True:
         try:
-            interface = meshtastic.serial_interface.SerialInterface(os.getenv("meshtty"))
             alert = data_queue.get()          
+            interface = meshtastic.serial_interface.SerialInterface(os.getenv("meshtty"))
             app.logger.debug("\t %s", alert["fingerprint"])
             interface.sendText(
                             alert["fingerprint"],
