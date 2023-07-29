@@ -165,6 +165,7 @@ def postalertmanager():
     try:
         content = json.loads(request.get_data())
         for alert in content["alerts"]:
+            app.logger.debug("\t put in queue: %s", alert["fingerprint"])
             data_queue.put(alert)
 
         return "Alert OK", 200
