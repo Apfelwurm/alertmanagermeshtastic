@@ -3,6 +3,9 @@
 This little Adapter receives alertmanager webhooks and sends the notifications via a over serial attached Meshtastic device to the specified nodeID.
 
 [![linux/amd64](https://github.com/Apfelwurm/alertmanager-webhook-meshtastic-python/actions/workflows/build-linux-image.yml/badge.svg)](https://github.com/Apfelwurm/alertmanager-webhook-meshtastic-python/actions/workflows/build-linux-image.yml)
+[![dockerhub](https://img.shields.io/badge/dockerhub-images-important.svg?logo=Docker)](https://hub.docker.com/r/apfelwurm/alertmanager-webhook-meshtastic-python)
+[![github](https://img.shields.io/badge/github-repository-important.svg?logo=Github)](https://github.com/Apfelwurm/alertmanager-webhook-meshtastic-python)
+
 
 ## Credits
 This container is based on the work of https://github.com/nopp/alertmanager-webhook-telegram-python
