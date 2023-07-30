@@ -5,15 +5,15 @@
 
 import pytest
 
-from alertmanager-meshtastic.irc import create_announcer, IrcChannel, IrcConfig
-from alertmanager-meshtastic.signals import irc_channel_joined
+from alertmanagermeshtastic.meshtastic import create_announcer, MeshtasticChannel, MeshtasticConfig
+from alertmanagermeshtastic.signals import meshtastic_channel_joined
 
 
 @pytest.fixture
 def config():
-    channels = {IrcChannel('#one'), IrcChannel('#two')}
+    channels = {MeshtasticChannel('#one'), MeshtasticChannel('#two')}
 
-    return IrcConfig(
+    return MeshtasticConfig(
         server=None,
         nickname='nick',
         realname='Nick',
@@ -34,8 +34,8 @@ def announcer(config):
 def test_fake_channel_joins(announcer):
     received_signal_data = []
 
-    @irc_channel_joined.connect
-    def handle_irc_channel_joined(sender, **data):
+    @meshtastic_channel_joined.connect
+    def handle_meshtastic_channel_joined(sender, **data):
         received_signal_data.append(data)
 
     announcer.start()

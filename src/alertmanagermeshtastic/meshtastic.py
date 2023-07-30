@@ -1,5 +1,5 @@
 """
-alertmanager-meshtastic.irc
+alertmanagermeshtastic.meshtastic
 ~~~~~~~~~~~~~~~
 
 Internet Relay Chat
@@ -13,12 +13,9 @@ import logging
 import ssl
 from typing import Optional
 
-from irc.bot import ServerSpec, SingleServerIRCBot
-from irc.connection import Factory
 from jaraco.stream.buffer import LenientDecodingLineBuffer
 
-from .config import IrcChannel, IrcConfig, IrcServer
-from .signals import irc_channel_joined
+from .config import MeshtasticChannel, MeshtasticConfig, MeshtasticServer
 from .util import start_thread
 
 
@@ -39,16 +36,16 @@ class Announcer:
         """Shut the announcer down."""
 
 
-class IrcAnnouncer(Announcer):
-    """An announcer that writes messages to IRC."""
+class MeshtasticAnnouncer(Announcer):
+    """An announcer that writes messages to MESHTASTIC."""
 
     def __init__(
         self,
-        server: IrcServer,
+        server: MeshtasticServer,
         nickname: str,
         realname: str,
         commands: list[str],
-        channels: set[IrcChannel],
+        channels: set[MeshtasticChannel],
     ) -> None:
         self.server = server
         self.commands = commands
@@ -60,7 +57,7 @@ class IrcAnnouncer(Announcer):
     def start(self) -> None:
         """Connect to the server, in a separate thread."""
         logger.info(
-            'Connecting to IRC server %s:%d ...',
+            'Connecting to MESHTASTIC server %s:%d ...',
             self.server.host,
             self.server.port,
         )
@@ -70,7 +67,7 @@ class IrcAnnouncer(Announcer):
     def _on_welcome(self, conn, event) -> None:
         """Join channels after connect."""
         logger.info(
-            'Connected to IRC server %s:%d.', *conn.socket.getpeername()
+            'Connected to MESHTASTIC server %s:%d.', *conn.socket.getpeername()
         )
 
         self._send_commands(conn)
@@ -99,12 +96,12 @@ class IrcAnnouncer(Announcer):
         self.bot.disconnect('Bye.')
 
 
-class Bot(SingleServerIRCBot):
-    """An IRC bot to forward messages to IRC channels."""
+class Bot(SingleServerMESHTASTICBot):
+    """An MESHTASTIC bot to forward messages to MESHTASTIC channels."""
 
     def get_version(self) -> str:
         """Return this on CTCP VERSION requests."""
-        return 'alertmanager-meshtastic'
+        return 'alertmanagermeshtastic'
 
     def on_nicknameinuse(self, conn, event) -> None:
         """Choose another nickname if conflicting."""
@@ -117,8 +114,8 @@ class Bot(SingleServerIRCBot):
         channel_name = event.target
 
         if joined_nick == self._nickname:
-            logger.info('Joined IRC channel: %s', channel_name)
-            irc_channel_joined.send(channel_name=channel_name)
+            logger.info('Joined MESHTASTIC channel: %s', channel_name)
+            meshtastic_channel_joined.send(channel_name=channel_name)
 
     def on_badchannelkey(self, conn, event) -> None:
         """Channel could not be joined due to wrong password."""
@@ -126,7 +123,7 @@ class Bot(SingleServerIRCBot):
         logger.warning('Cannot join channel %s (bad key).', channel_name)
 
 
-def _create_bot(server: IrcServer, nickname: str, realname: str) -> Bot:
+def _create_bot(server: MeshtasticServer, nickname: str, realname: str) -> Bot:
     """Create a bot."""
     server_spec = ServerSpec(server.host, server.port, server.password)
     factory = Factory(wrapper=ssl.wrap_socket) if server.ssl else Factory()
@@ -145,38 +142,38 @@ def _set_rate_limit(connection, rate_limit: Optional[float]) -> None:
     """Set rate limit."""
     if rate_limit is not None:
         logger.info(
-            'IRC send rate limit set to %.2f messages per second.',
+            'MESHTASTIC send rate limit set to %.2f messages per second.',
             rate_limit,
         )
         connection.set_rate_limit(rate_limit)
     else:
-        logger.info('No IRC send rate limit set.')
+        logger.info('No MESHTASTIC send rate limit set.')
 
 
 class DummyAnnouncer(Announcer):
     """An announcer that writes messages to STDOUT."""
 
-    def __init__(self, channels: set[IrcChannel]) -> None:
+    def __init__(self, channels: set[MeshtasticChannel]) -> None:
         self.channels = channels
 
     def start(self) -> None:
         """Start the announcer."""
         # Fake channel joins.
         for channel in sorted(self.channels):
-            irc_channel_joined.send(channel_name=channel.name)
+            meshtastic_channel_joined.send(channel_name=channel.name)
 
     def announce(self, channel_name: str, text: str) -> None:
         """Announce a message."""
         logger.debug('%s> %s', channel_name, text)
 
 
-def create_announcer(config: IrcConfig) -> Announcer:
+def create_announcer(config: MeshtasticConfig) -> Announcer:
     """Create an announcer."""
     if config.server is None:
-        logger.info('No IRC server specified; will write to STDOUT instead.')
+        logger.info('No MESHTASTIC server specified; will write to STDOUT instead.')
         return DummyAnnouncer(config.channels)
 
-    return IrcAnnouncer(
+    return MeshtasticAnnouncer(
         config.server,
         config.nickname,
         config.realname,

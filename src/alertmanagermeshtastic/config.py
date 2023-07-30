@@ -1,5 +1,5 @@
 """
-alertmanager-meshtastic.config
+alertmanagermeshtastic.config
 ~~~~~~~~~~~~~~~~~~
 
 Configuration loading
@@ -19,8 +19,8 @@ import rtoml
 
 DEFAULT_HTTP_HOST = '127.0.0.1'
 DEFAULT_HTTP_PORT = 8080
-DEFAULT_IRC_SERVER_PORT = 6667
-DEFAULT_IRC_REALNAME = 'alertmanager-meshtastic'
+DEFAULT_MESHTASTIC_SERVER_PORT = 6667
+DEFAULT_MESHTASTIC_REALNAME = 'alertmanagermeshtastic'
 
 
 class ConfigurationError(Exception):
@@ -31,7 +31,7 @@ class ConfigurationError(Exception):
 class Config:
     log_level: str
     http: HttpConfig
-    irc: IrcConfig
+    meshtastic: MeshtasticConfig
 
 
 @dataclass(frozen=True)
@@ -45,33 +45,33 @@ class HttpConfig:
 
 
 @dataclass(frozen=True)
-class IrcServer:
-    """An IRC server."""
+class MeshtasticServer:
+    """An MESHTASTIC server."""
 
     host: str
-    port: int = DEFAULT_IRC_SERVER_PORT
+    port: int = DEFAULT_MESHTASTIC_SERVER_PORT
     ssl: bool = False
     password: Optional[str] = None
     rate_limit: Optional[float] = None
 
 
 @dataclass(frozen=True, order=True)
-class IrcChannel:
-    """An IRC channel."""
+class MeshtasticChannel:
+    """An MESHTASTIC channel."""
 
     name: str
     password: Optional[str] = None
 
 
 @dataclass(frozen=True)
-class IrcConfig:
-    """An IRC bot configuration."""
+class MeshtasticConfig:
+    """An MESHTASTIC bot configuration."""
 
-    server: Optional[IrcServer]
+    server: Optional[MeshtasticServer]
     nickname: str
     realname: str
     commands: list[str]
-    channels: set[IrcChannel]
+    channels: set[MeshtasticChannel]
 
 
 def load_config(path: Path) -> Config:
@@ -80,12 +80,12 @@ def load_config(path: Path) -> Config:
 
     log_level = _get_log_level(data)
     http_config = _get_http_config(data)
-    irc_config = _get_irc_config(data)
+    meshtastic_config = _get_meshtastic_config(data)
 
     return Config(
         log_level=log_level,
         http=http_config,
-        irc=irc_config,
+        meshtastic=meshtastic_config,
     )
 
 
@@ -114,7 +114,7 @@ def _get_channel_tokens_to_channel_names(
 ) -> dict[str, str]:
     channel_tokens_to_channel_names = {}
 
-    for channel in data['irc'].get('channels', []):
+    for channel in data['meshtastic'].get('channels', []):
         channel_name = channel['name']
 
         tokens = set(channel.get('tokens', []))
@@ -130,16 +130,16 @@ def _get_channel_tokens_to_channel_names(
     return channel_tokens_to_channel_names
 
 
-def _get_irc_config(data: dict[str, Any]) -> IrcConfig:
-    data_irc = data['irc']
+def _get_meshtastic_config(data: dict[str, Any]) -> MeshtasticConfig:
+    data_meshtastic = data['meshtastic']
 
-    server = _get_irc_server(data_irc)
-    nickname = data_irc['bot']['nickname']
-    realname = data_irc['bot'].get('realname', DEFAULT_IRC_REALNAME)
-    commands = data_irc.get('commands', [])
-    channels = set(_get_irc_channels(data_irc))
+    server = _get_meshtastic_server(data_meshtastic)
+    nickname = data_meshtastic['bot']['nickname']
+    realname = data_meshtastic['bot'].get('realname', DEFAULT_MESHTASTIC_REALNAME)
+    commands = data_meshtastic.get('commands', [])
+    channels = set(_get_meshtastic_channels(data_meshtastic))
 
-    return IrcConfig(
+    return MeshtasticConfig(
         server=server,
         nickname=nickname,
         realname=realname,
@@ -148,8 +148,8 @@ def _get_irc_config(data: dict[str, Any]) -> IrcConfig:
     )
 
 
-def _get_irc_server(data_irc: Any) -> Optional[IrcServer]:
-    data_server = data_irc.get('server')
+def _get_meshtastic_server(data_meshtastic: Any) -> Optional[MeshtasticServer]:
+    data_server = data_meshtastic.get('server')
     if data_server is None:
         return None
 
@@ -157,19 +157,19 @@ def _get_irc_server(data_irc: Any) -> Optional[IrcServer]:
     if not host:
         return None
 
-    port = int(data_server.get('port', DEFAULT_IRC_SERVER_PORT))
+    port = int(data_server.get('port', DEFAULT_MESHTASTIC_SERVER_PORT))
     ssl = data_server.get('ssl', False)
     password = data_server.get('password')
     rate_limit_str = data_server.get('rate_limit')
     rate_limit = float(rate_limit_str) if rate_limit_str else None
 
-    return IrcServer(
+    return MeshtasticServer(
         host=host, port=port, ssl=ssl, password=password, rate_limit=rate_limit
     )
 
 
-def _get_irc_channels(data_irc: Any) -> Iterator[IrcChannel]:
-    for channel in data_irc.get('channels', []):
+def _get_meshtastic_channels(data_meshtastic: Any) -> Iterator[MeshtasticChannel]:
+    for channel in data_meshtastic.get('channels', []):
         name = channel['name']
         password = channel.get('password')
-        yield IrcChannel(name, password)
+        yield MeshtasticChannel(name, password)

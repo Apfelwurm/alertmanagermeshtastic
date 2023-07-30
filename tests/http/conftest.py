@@ -7,8 +7,8 @@ from threading import Thread
 
 import pytest
 
-from alertmanager-meshtastic.config import HttpConfig
-from alertmanager-meshtastic.http import create_server
+from alertmanagermeshtastic.config import HttpConfig
+from alertmanagermeshtastic.http import create_server
 
 
 @pytest.fixture

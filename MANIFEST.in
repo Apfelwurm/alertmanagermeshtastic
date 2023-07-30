@@ -1,5 +1,5 @@
 include .dockerignore
-include assets/alertmanager-meshtastic_logo.svg
+include assets/alertmanagermeshtastic_logo.svg
 include CHANGES.rst
 include compose.yaml
 include config_example.toml

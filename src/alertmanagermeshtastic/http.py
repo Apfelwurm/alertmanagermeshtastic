@@ -1,5 +1,5 @@
 """
-alertmanager-meshtastic.http
+alertmanagermeshtastic.http
 ~~~~~~~~~~~~~~~~
 
 HTTP server to receive messages
@@ -137,7 +137,7 @@ def _extract_payload(request: Request, keys: set[str]) -> dict[str, str]:
 
 
 # Override value of `Server:` header sent by wsgiref.
-ServerHandler.server_software = 'alertmanager-meshtastic'
+ServerHandler.server_software = 'alertmanagermeshtastic'
 
 
 def create_server(config: HttpConfig) -> WSGIServer:

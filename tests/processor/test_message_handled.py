@@ -5,9 +5,9 @@
 
 import pytest
 
-from alertmanager-meshtastic.config import Config, HttpConfig, IrcConfig
-from alertmanager-meshtastic.processor import Processor
-from alertmanager-meshtastic.signals import irc_channel_joined, message_received
+from alertmanagermeshtastic.config import Config, HttpConfig, MeshtasticConfig
+from alertmanagermeshtastic.processor import Processor
+from alertmanagermeshtastic.signals import meshtastic_channel_joined, message_received
 
 
 @pytest.fixture
@@ -19,7 +19,7 @@ def processor():
         channel_tokens_to_channel_names={},
     )
 
-    irc_config = IrcConfig(
+    meshtastic_config = MeshtasticConfig(
         server=None,
         nickname='Nick',
         realname='Nick',
@@ -27,7 +27,7 @@ def processor():
         channels=set(),
     )
 
-    config = Config(log_level="debug", http=http_config, irc=irc_config)
+    config = Config(log_level="debug", http=http_config, meshtastic=meshtastic_config)
 
     return Processor(config)
 
@@ -55,7 +55,7 @@ def test_message_handled(processor):
 
 
 def fake_channel_join(channel_name):
-    irc_channel_joined.send(channel_name=channel_name)
+    meshtastic_channel_joined.send(channel_name=channel_name)
 
 
 def send_message_received_signal(channel_name, text):

@@ -1,5 +1,5 @@
 """
-alertmanager-meshtastic.util
+alertmanagermeshtastic.util
 ~~~~~~~~~~~~~~~~
 
 Utilities

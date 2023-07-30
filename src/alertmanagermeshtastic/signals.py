@@ -1,5 +1,5 @@
 """
-alertmanager-meshtastic.signals
+alertmanagermeshtastic.signals
 ~~~~~~~~~~~~~~~~~~~
 
 Signals

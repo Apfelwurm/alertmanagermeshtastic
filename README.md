@@ -28,7 +28,7 @@ To integrate this bridge into your composed prometheus/alertmanager cluster, thi
 If you plan to use a virtual serial port that is provided with socat (for example /tmp/vcom0), you have to use a volume mount instead of the device binding:
 
 ```
-    alertmanager-meshtastic:
+    alertmanagermeshtastic:
       image: apfelwurm/alertmanager-webhook-meshtastic-python
       ports:
         - 9119:9119
@@ -51,7 +51,7 @@ To integrate this bridge into your composed prometheus/alertmanager cluster, thi
 If you plan to use a virtual serial port that is provided with socat (for example /tmp/vcom0), you have to use a volume mount instead of the device binding:
 
 ```
-    alertmanager-meshtastic:
+    alertmanagermeshtastic:
       image: apfelwurm/alertmanager-webhook-meshtastic-python
       ports:
         - 9119:9119

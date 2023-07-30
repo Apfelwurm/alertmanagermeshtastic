@@ -5,26 +5,26 @@ host = "127.0.0.1"
 port = 8080
 api_tokens = []
 
-[irc.server]
-host = "irc.server.example"
+[meshtastic.server]
+host = "meshtastic.server.example"
 port = 6667
 ssl = false
 password = "secret"
 rate_limit = 0.5
 
-[irc.bot]
-nickname = "alertmanager-meshtastic"
-realname = "alertmanager-meshtastic"
+[meshtastic.bot]
+nickname = "alertmanagermeshtastic"
+realname = "alertmanagermeshtastic"
 
-[irc]
+[meshtastic]
 commands = [
-  "MODE alertmanager-meshtastic +i",
+  "MODE alertmanagermeshtastic +i",
 ]
 
-[[irc.channels]]
+[[meshtastic.channels]]
 name = "#party"
 
-[[irc.channels]]
+[[meshtastic.channels]]
 name = "#secretlab"
 password = "555-secret"
 tokens = [

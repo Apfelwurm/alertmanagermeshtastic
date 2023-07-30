@@ -1,5 +1,5 @@
 """
-alertmanager-meshtastic.tokencli
+alertmanagermeshtastic.tokencli
 ~~~~~~~~~~~~~~~~~~~~
 
 Command line tool to generate secret tokens

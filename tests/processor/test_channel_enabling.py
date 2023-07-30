@@ -3,9 +3,9 @@
 :License: MIT, see LICENSE for details.
 """
 
-from alertmanager-meshtastic.config import Config, HttpConfig, IrcConfig
-from alertmanager-meshtastic.processor import Processor
-from alertmanager-meshtastic.signals import irc_channel_joined
+from alertmanagermeshtastic.config import Config, HttpConfig, MeshtasticConfig
+from alertmanagermeshtastic.processor import Processor
+from alertmanagermeshtastic.signals import meshtastic_channel_joined
 
 
 def test_channel_enabling_on_join_signal():
@@ -14,12 +14,12 @@ def test_channel_enabling_on_join_signal():
     assert '#example1' not in processor.enabled_channel_names
     assert '#example2' not in processor.enabled_channel_names
 
-    irc_channel_joined.send(channel_name='#example1')
+    meshtastic_channel_joined.send(channel_name='#example1')
 
     assert '#example1' in processor.enabled_channel_names
     assert '#example2' not in processor.enabled_channel_names
 
-    irc_channel_joined.send(channel_name='#example2')
+    meshtastic_channel_joined.send(channel_name='#example2')
 
     assert '#example1' in processor.enabled_channel_names
     assert '#example2' in processor.enabled_channel_names
@@ -33,7 +33,7 @@ def create_processor():
         channel_tokens_to_channel_names={},
     )
 
-    irc_config = IrcConfig(
+    meshtastic_config = MeshtasticConfig(
         server=None,
         nickname='nick',
         realname='Nick',
@@ -41,6 +41,6 @@ def create_processor():
         channels=set(),
     )
 
-    config = Config(log_level=None, http=http_config, irc=irc_config)
+    config = Config(log_level=None, http=http_config, meshtastic=meshtastic_config)
 
     return Processor(config)
