@@ -5,10 +5,10 @@
 [![github](https://img.shields.io/badge/github-repository-important.svg?logo=Github)](https://github.com/Apfelwurm/alertmanager-webhook-meshtastic-python)
 
 
-This little Adapter receives alertmanager webhooks and sends the notifications via a over serial attached Meshtastic device to the specified nodeID.
+This little Adapter receives alertmanager webhooks and sends the notifications via a over serial attached Meshtastic device to the specified nodeID. (currently not working and docs not updated!)
 
 ## Credits
-This container is based on the work of https://github.com/nopp/alertmanager-webhook-telegram-python
+This is based on the work of https://github.com/homeworkprod/weitersager
 Thanks to [GUVWAF](https://github.com/GUVWAF) for the support and thanks to the whole meshtastic team for this awsome software!
 
 ##  Alertmanager configuration example

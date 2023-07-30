@@ -1,0 +1,13 @@
+[http]
+host = "0.0.0.0"
+port = 8080
+
+[irc.server]
+host = "irc.server.example"
+port = 6667
+
+[irc.bot]
+nickname = "alertmanager-meshtastic"
+
+[[irc.channels]]
+name = "#party"

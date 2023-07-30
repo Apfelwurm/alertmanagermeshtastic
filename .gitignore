@@ -1,2 +1,15 @@
-flaskAlert.log
-.venv
+# Python 3 bytecode
+__pycache__
+
+# virtual environment
+venv/
+.venv/
+
+# testing
+.coverage
+.pytest_cache
+
+# packaging/distribution
+build/
+dist/
+*.egg-info/

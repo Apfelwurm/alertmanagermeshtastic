@@ -1,0 +1,13 @@
+include .dockerignore
+include assets/alertmanager-meshtastic_logo.svg
+include CHANGES.rst
+include compose.yaml
+include config_example.toml
+include config_example_docker.toml
+include Dockerfile
+include requirements.txt
+include requirements-dev.txt
+include requirements-release.txt
+include requirements-test.txt
+graft tests
+global-exclude *.pyc
