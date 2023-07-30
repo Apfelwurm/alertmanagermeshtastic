@@ -30,7 +30,7 @@ def parse_args(args: list[str]) -> Namespace:
 
 
 def main() -> None:
-    """Load the configuration file, start the MESHTASTIC bot and HTTP listen server."""
+    """Load the configuration file, start the MESHTASTIC Interface and HTTP listen server."""
     namespace = parse_args(sys.argv[1:])
     config = load_config(namespace.config_filename)
     configure_logging(config.log_level)

@@ -14,7 +14,7 @@ from alertmanagermeshtastic.signals import meshtastic_channel_joined, message_re
 def processor():
     http_config = HttpConfig(
         'localhost',
-        8080,
+        9119,
         api_tokens=set(),
         channel_tokens_to_channel_names={},
     )

@@ -98,7 +98,7 @@ def test_load_config_with_defaults():
 
     assert config.http == HttpConfig(
         host='127.0.0.1',
-        port=8080,
+        port=9119,
         api_tokens=set(),
         channel_tokens_to_channel_names={},
     )

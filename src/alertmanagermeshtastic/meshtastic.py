@@ -4,19 +4,20 @@ alertmanagermeshtastic.meshtastic
 
 Internet Relay Chat
 
-:Copyright: 2007-2022 Jochen Kupperschmidt
+:Copyright: 2007-2022 Jochen Kupperschmidt, Alexander Volz
 :License: MIT, see LICENSE for details.
 """
 
 from __future__ import annotations
 import logging
-import ssl
 from typing import Optional
+import meshtastic, meshtastic.serial_interface
 
-from jaraco.stream.buffer import LenientDecodingLineBuffer
-
-from .config import MeshtasticChannel, MeshtasticConfig, MeshtasticServer
+from dateutil import parser
+from .config import MeshtasticConfig, MeshtasticConnection
 from .util import start_thread
+import time
+
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +29,7 @@ class Announcer:
     def start(self) -> None:
         """Start the announcer."""
 
-    def announce(self, channel_name: str, text: str) -> None:
+    def announce(self, alert: str) -> None:
         """Announce a message."""
         raise NotImplementedError()
 
@@ -41,142 +42,181 @@ class MeshtasticAnnouncer(Announcer):
 
     def __init__(
         self,
-        server: MeshtasticServer,
-        nickname: str,
-        realname: str,
-        commands: list[str],
-        channels: set[MeshtasticChannel],
+        connection: MeshtasticConnection,
     ) -> None:
-        self.server = server
-        self.commands = commands
-        self.channels = channels
+        self.connection = connection
 
-        self.bot = _create_bot(server, nickname, realname)
-        self.bot.on_welcome = self._on_welcome
+        self.meshtasticinterface = _create_meshtasticinterface(connection)
 
     def start(self) -> None:
-        """Connect to the server, in a separate thread."""
+        """Connect to the connection, in a separate thread."""
         logger.info(
-            'Connecting to MESHTASTIC server %s:%d ...',
-            self.server.host,
-            self.server.port,
+            'Connecting to MESHTASTIC connection %s, the node is %d and messages will be sent %d times before failing',
+            self.connection.tty,
+            self.connection.nodeid,
+            self.connection.maxsendingattempts,
         )
 
-        start_thread(self.bot.start)
+        # start_thread(self.meshtasticinterface.start)
 
-    def _on_welcome(self, conn, event) -> None:
-        """Join channels after connect."""
-        logger.info(
-            'Connected to MESHTASTIC server %s:%d.', *conn.socket.getpeername()
-        )
-
-        self._send_commands(conn)
-        self._join_channels(conn)
-
-    def _send_commands(self, conn):
-        """Send custom commands after having been welcomed by the server."""
-        for command in self.commands:
-            conn.send_raw(command)
-
-    def _join_channels(self, conn):
-        """Join the configured channels."""
-        channels = sorted(self.channels)
-        logger.info('Channels to join: %s', ', '.join(c.name for c in channels))
-
-        for channel in channels:
-            logger.info('Joining channel %s ...', channel.name)
-            conn.join(channel.name, channel.password or '')
-
-    def announce(self, channel_name: str, text: str) -> None:
+    def announce(self, alert: str) -> None:
         """Announce a message."""
-        self.bot.connection.privmsg(channel_name, text)
+        try:
+            try:
+                message = self.formatalert(alert)
+
+            except Exception as e:
+                logger.error(
+                    "\t Message formatting failed: %s",
+                    e,
+                )
+                raise
+
+            try:
+                chunks = self.splitmessagesifnessecary(message)
+
+            except Exception as e:
+                logger.error(
+                    "\t could not split in chunks: %s",
+                    e,
+                )
+                raise
+
+            for chunk in chunks:
+                for attempt in range(self.connection.maxsendingattempts):
+                    logger.debug(
+                        "\tsending chunk attempt %d :%s ", attempt, chunk
+                    )
+                    try:
+                        self.meshtasticinterface.sendText(
+                            chunk,
+                            self.connection.nodeid,
+                            True,
+                            False,
+                            self.meshtasticinterface.getNode(
+                                self.connection.nodeid, False
+                            ).onAckNak,
+                        )
+                        self.meshtasticinterface.waitForAckNak()
+
+                        start_time = time.time()
+                        timeout = 30
+
+                        while True:
+                            # Check if value is True
+                            if self.meshtasticinterface._acknowledgment.receivedAck:
+                                print("got ack received from meshtastic")
+                                break
+
+                            # Check if timeout has been reached
+                            if time.time() - start_time > timeout:
+                                print("Timeout reached!")
+                                raise Exception("No ack received from meshtastic within the timeout")
+                                break
+
+                            # Sleep for a short period to avoid a busy wait
+                            time.sleep(0.1)
+
+                        logger.debug(
+                            "\tsending chunk attempt %d success ", attempt
+                        )
+                        break
+                    except Exception as e:
+                        logger.error(
+                            "\t chunk Attempt %d failed with error: %s",
+                            attempt + 1,
+                            e,
+                        )
+                        if attempt == self.connection.maxsendingattempts - 1:
+                            raise
+
+        except Exception as e:
+            logger.error("\t send Attempt failed with error: %s", e)
+
+    def splitmessagesifnessecary(self, message):
+        chunk_size = 150
+        if len(message) > chunk_size:
+            logger.debug("\tMessage to big, split to chunks")
+            chunks = [
+                message[i : i + chunk_size]
+                for i in range(0, len(message), chunk_size)
+            ]
+            return chunks
+        else:
+            logger.debug("\tMessage size okay")
+            return [message]
+
+    def formatalert(self, alert):
+        message = "Status: " + alert["status"] + "\n"
+        if "name" in alert["labels"]:
+            message += (
+                "Instance: "
+                + alert["labels"]["instance"]
+                + "("
+                + alert["labels"]["name"]
+                + ")\n"
+            )
+        elif "instance" in alert["labels"]:
+            message += "Instance: " + alert["labels"]["instance"] + "\n"
+        elif "alertname" in alert["labels"]:
+            message += "Alert: " + alert["labels"]["alertname"] + "\n"
+        if "info" in alert["annotations"]:
+            message += "Info: " + alert["annotations"]["info"] + "\n"
+        if "summary" in alert["annotations"]:
+            message += "Summary: " + alert["annotations"]["summary"] + "\n"
+        if 'description' in alert['annotations']:
+            message += "Description: "+alert['annotations']['description']+"\n"
+        if alert["status"] == "resolved":
+            correctdate = parser.parse(alert["endsAt"]).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
+            message += "Resolved: " + correctdate
+        elif alert["status"] == "firing":
+            correctdate = parser.parse(alert["startsAt"]).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
+            message += "Started: " + correctdate
+        return message
 
     def shutdown(self) -> None:
         """Shut the announcer down."""
-        self.bot.disconnect('Bye.')
+        self.meshtasticinterface.close()
 
 
-class Bot(SingleServerMESHTASTICBot):
-    """An MESHTASTIC bot to forward messages to MESHTASTIC channels."""
+class Meshtasticinterface(meshtastic.serial_interface.SerialInterface):
+    """An MESHTASTIC Interface to forward messages to MESHTASTIC devices."""
 
     def get_version(self) -> str:
         """Return this on CTCP VERSION requests."""
         return 'alertmanagermeshtastic'
 
-    def on_nicknameinuse(self, conn, event) -> None:
-        """Choose another nickname if conflicting."""
-        self._nickname += '_'
-        conn.nick(self._nickname)
 
-    def on_join(self, conn, event) -> None:
-        """Successfully joined channel."""
-        joined_nick = event.source.nick
-        channel_name = event.target
+def _create_meshtasticinterface(
+    connection: MeshtasticConnection,
+) -> Meshtasticinterface:
+    """Create a Interface."""
 
-        if joined_nick == self._nickname:
-            logger.info('Joined MESHTASTIC channel: %s', channel_name)
-            meshtastic_channel_joined.send(channel_name=channel_name)
+    meshtasticinterface = Meshtasticinterface(connection.tty)
 
-    def on_badchannelkey(self, conn, event) -> None:
-        """Channel could not be joined due to wrong password."""
-        channel_name = event.arguments[0]
-        logger.warning('Cannot join channel %s (bad key).', channel_name)
-
-
-def _create_bot(server: MeshtasticServer, nickname: str, realname: str) -> Bot:
-    """Create a bot."""
-    server_spec = ServerSpec(server.host, server.port, server.password)
-    factory = Factory(wrapper=ssl.wrap_socket) if server.ssl else Factory()
-
-    bot = Bot([server_spec], nickname, realname, connect_factory=factory)
-
-    _set_rate_limit(bot.connection, server.rate_limit)
-
-    # Avoid `UnicodeDecodeError` on non-UTF-8 messages.
-    bot.connection.buffer_class = LenientDecodingLineBuffer
-
-    return bot
-
-
-def _set_rate_limit(connection, rate_limit: Optional[float]) -> None:
-    """Set rate limit."""
-    if rate_limit is not None:
-        logger.info(
-            'MESHTASTIC send rate limit set to %.2f messages per second.',
-            rate_limit,
-        )
-        connection.set_rate_limit(rate_limit)
-    else:
-        logger.info('No MESHTASTIC send rate limit set.')
+    return meshtasticinterface
 
 
 class DummyAnnouncer(Announcer):
     """An announcer that writes messages to STDOUT."""
 
-    def __init__(self, channels: set[MeshtasticChannel]) -> None:
-        self.channels = channels
-
-    def start(self) -> None:
-        """Start the announcer."""
-        # Fake channel joins.
-        for channel in sorted(self.channels):
-            meshtastic_channel_joined.send(channel_name=channel.name)
-
-    def announce(self, channel_name: str, text: str) -> None:
+    def announce(self, alert: str) -> None:
         """Announce a message."""
-        logger.debug('%s> %s', channel_name, text)
+        logger.debug('%s> %s', alert)
 
 
 def create_announcer(config: MeshtasticConfig) -> Announcer:
     """Create an announcer."""
-    if config.server is None:
-        logger.info('No MESHTASTIC server specified; will write to STDOUT instead.')
-        return DummyAnnouncer(config.channels)
+    if config.connection is None:
+        logger.info(
+            'No MESHTASTIC connection specified; will write to STDOUT instead.'
+        )
+        return DummyAnnouncer()
 
     return MeshtasticAnnouncer(
-        config.server,
-        config.nickname,
-        config.realname,
-        config.commands,
-        config.channels,
+        config.connection,
     )

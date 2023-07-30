@@ -2,7 +2,7 @@
 alertmanagermeshtastic.processor
 ~~~~~~~~~~~~~~~~~~~~~
 
-Connect HTTP server and MESHTASTIC bot.
+Connect HTTP server and MESHTASTIC interface.
 
 :Copyright: 2007-2022 Jochen Kupperschmidt
 :License: MIT, see LICENSE for details.
@@ -36,43 +36,32 @@ class Processor:
     def connect_to_signals(self) -> None:
         message_received.connect(self.handle_message)
 
-    def enable_channel(self, sender, *, channel_name=None) -> None:
-        logger.info('Enabled forwarding to channel %s.', channel_name)
-        self.enabled_channel_names.add(channel_name)
+    # def enable_channel(self, sender, *, channel_name=None) -> None:
+    #     logger.info('Enabled forwarding to channel %s.', channel_name)
+    #     self.enabled_channel_names.add(channel_name)
 
     def handle_message(
         self,
         sender: Optional[Any],
         *,
-        channel_name: str,
-        text: str,
-        source_ip_address: Optional[str] = None,
+        alert: str,
     ) -> None:
         """Log and announce an incoming message."""
         logger.debug(
-            'Received message from %s for channel %s with text "%s".',
-            source_ip_address or 'unknown address',
-            channel_name,
-            text,
+            'Received message %s',
+            alert["fingerprint"]
         )
 
-        self.message_queue.put((channel_name, text))
+        self.message_queue.put((alert))
 
-    def announce_message(self, channel_name: str, text: str) -> None:
+    def announce_message(self, alert: str) -> None:
         """Announce message on MESHTASTIC."""
-        if channel_name not in self.enabled_channel_names:
-            logger.warning(
-                'Could not send message to channel %s, not joined.',
-                channel_name,
-            )
-            return
-
-        self.announcer.announce(channel_name, text)
+        self.announcer.announce(alert)
 
     def process_queue(self, timeout_seconds: Optional[int] = None) -> None:
         """Process a message from the queue."""
-        channel_name, text = self.message_queue.get(timeout=timeout_seconds)
-        self.announce_message(channel_name, text)
+        alert = self.message_queue.get(timeout=timeout_seconds)
+        self.announce_message(alert)
 
     def run(self) -> None:
         """Run the main loop."""
@@ -91,6 +80,6 @@ class Processor:
 
 
 def start(config: Config) -> None:
-    """Start the MESHTASTIC bot and the HTTP listen server."""
+    """Start the MESHTASTIC interface and the HTTP listen server."""
     processor = Processor(config)
     processor.run()

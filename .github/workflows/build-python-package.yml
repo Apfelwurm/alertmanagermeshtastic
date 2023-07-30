@@ -1,42 +1,42 @@
-name: python-package
+# name: python-package
 
-on:
-  push:
-    branches: [ main ]
-    paths:
-    - '**'
-    - '!README.md'
-    - '!.github/workflows/update-dockerhub.yml'
-  pull_request:
-    branches: [ main ]
-    paths:
-    - '**'
-    - '!README.md'
-    - '!.github/workflows/update-dockerhub.yml'
+# on:
+#   push:
+#     branches: [ main ]
+#     paths:
+#     - '**'
+#     - '!README.md'
+#     - '!.github/workflows/update-dockerhub.yml'
+#   pull_request:
+#     branches: [ main ]
+#     paths:
+#     - '**'
+#     - '!README.md'
+#     - '!.github/workflows/update-dockerhub.yml'
 
-  repository_dispatch: # Allows action to be triggered via webhook
+#   repository_dispatch: # Allows action to be triggered via webhook
 
-  workflow_dispatch: # Allows action to be run manually from the Actions tab
+#   workflow_dispatch: # Allows action to be run manually from the Actions tab
 
-jobs:
-  pypi-publish:
-    name: Upload release to PyPI
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/alertmanagermeshtastic
-    permissions:
-      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
-      contents: write # IMPORTANT: this permission is mandatory for dispatch
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-    - run: python3 -m pip install --upgrade build && python3 -m build
-    - name: Publish package distributions to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
-    - name: Repository Dispatch docker build
-      uses: peter-evans/repository-dispatch@v2
-      with:
-        event-type: pypi-published
+# jobs:
+#   pypi-publish:
+#     name: Upload release to PyPI
+#     runs-on: ubuntu-latest
+#     environment:
+#       name: pypi
+#       url: https://pypi.org/p/alertmanagermeshtastic
+#     permissions:
+#       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+#       contents: write # IMPORTANT: this permission is mandatory for dispatch
+#     steps:
+#     - name: Checkout
+#       uses: actions/checkout@v3
+#       with:
+#         fetch-depth: 0
+#     - run: python3 -m pip install --upgrade build && python3 -m build
+#     - name: Publish package distributions to PyPI
+#       uses: pypa/gh-action-pypi-publish@release/v1
+#     - name: Repository Dispatch docker build
+#       uses: peter-evans/repository-dispatch@v2
+#       with:
+#         event-type: pypi-published

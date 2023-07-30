@@ -4,12 +4,13 @@ alertmanagermeshtastic.http
 
 HTTP server to receive messages
 
-:Copyright: 2007-2022 Jochen Kupperschmidt
+:Copyright: 2007-2022 Jochen Kupperschmidt, Alexander Volz
 :License: MIT, see LICENSE for details.
 """
 
 from __future__ import annotations
 from http import HTTPStatus
+import json
 import logging
 import sys
 from typing import Optional
@@ -28,25 +29,17 @@ from .util import start_thread
 logger = logging.getLogger(__name__)
 
 
-def create_app(
-    api_tokens: set[str], channel_tokens_to_channel_names: dict[str, str]
-) -> Application:
-    return Application(api_tokens, channel_tokens_to_channel_names)
+def create_app() -> Application:
+    return Application()
 
 
 class Application:
     def __init__(
         self,
-        api_tokens: set[str],
-        channel_tokens_to_channel_names: dict[str, str],
     ) -> None:
-        self._api_tokens = api_tokens
-        self._channel_tokens_to_channel_names = channel_tokens_to_channel_names
-
         self._url_map = Map(
             [
-                Rule('/', endpoint='root'),
-                Rule('/ct/<channel_token>', endpoint='channel_token'),
+                Rule('/alert', endpoint='alert', methods=['POST']),
             ]
         )
 
@@ -68,53 +61,17 @@ class Application:
         except HTTPException as exc:
             return exc
 
-    def on_root(self, request: Request) -> Response:
-        if self._api_tokens:
-            api_token = _get_api_token(request.headers)
-            if not api_token:
-                abort(HTTPStatus.UNAUTHORIZED)
+    def on_alert(self, request: Request) -> Response:
+        try:
+            data = _extract_payload(request, {'alerts'})
 
-            if api_token not in self._api_tokens:
-                abort(HTTPStatus.FORBIDDEN)
-
-        data = _extract_payload(request, {'channel', 'text'})
-
-        message_received.send(
-            channel_name=data['channel'],
-            text=data['text'],
-            source_ip_address=request.remote_addr,
-        )
-
-        return Response('', status=HTTPStatus.ACCEPTED)
-
-    def on_channel_token(
-        self, request: Request, channel_token: str
-    ) -> Response:
-        channel_name = self._channel_tokens_to_channel_names.get(channel_token)
-        if channel_name is None:
-            abort(HTTPStatus.NOT_FOUND)
-
-        data = _extract_payload(request, {'text'})
-
-        message_received.send(
-            channel_name=channel_name,
-            text=data['text'],
-            source_ip_address=request.remote_addr,
-        )
-
-        return Response('', status=HTTPStatus.ACCEPTED)
-
-
-def _get_api_token(headers: Headers) -> Optional[str]:
-    authorization_value = headers.get('Authorization')
-    if not authorization_value:
-        return None
-
-    prefix = 'Token '
-    if not authorization_value.startswith(prefix):
-        return None
-
-    return authorization_value[len(prefix) :]
+            for alert in data["alerts"]:
+                logger.debug("\t put in queue: %s", alert["fingerprint"])
+                message_received.send(alert=alert)
+            return Response('Alert OK', status=HTTPStatus.OK)
+        except Exception as error:
+            logger.error("\t could not queue alerts: %s ", error)
+            return Response('Alert fail', status=HTTPStatus.OK)
 
 
 def _extract_payload(request: Request, keys: set[str]) -> dict[str, str]:
@@ -142,7 +99,7 @@ ServerHandler.server_software = 'alertmanagermeshtastic'
 
 def create_server(config: HttpConfig) -> WSGIServer:
     """Create the HTTP server."""
-    app = create_app(config.api_tokens, config.channel_tokens_to_channel_names)
+    app = create_app()
 
     return make_server(config.host, config.port, app)
 

@@ -18,9 +18,9 @@ import rtoml
 
 
 DEFAULT_HTTP_HOST = '127.0.0.1'
-DEFAULT_HTTP_PORT = 8080
-DEFAULT_MESHTASTIC_SERVER_PORT = 6667
-DEFAULT_MESHTASTIC_REALNAME = 'alertmanagermeshtastic'
+DEFAULT_HTTP_PORT = 9119
+DEFAULT_MESHTASTIC_NODEID = 123456789
+DEFAULT_MESHTASTIC_MAXSENDINGATTEMPTS = 5
 
 
 class ConfigurationError(Exception):
@@ -40,38 +40,22 @@ class HttpConfig:
 
     host: str
     port: int
-    api_tokens: set[str]
-    channel_tokens_to_channel_names: dict[str, str]
 
 
 @dataclass(frozen=True)
-class MeshtasticServer:
-    """An MESHTASTIC server."""
+class MeshtasticConnection:
+    """An MESHTASTIC connection."""
 
-    host: str
-    port: int = DEFAULT_MESHTASTIC_SERVER_PORT
-    ssl: bool = False
-    password: Optional[str] = None
-    rate_limit: Optional[float] = None
-
-
-@dataclass(frozen=True, order=True)
-class MeshtasticChannel:
-    """An MESHTASTIC channel."""
-
-    name: str
-    password: Optional[str] = None
+    tty: str
+    nodeid: int = DEFAULT_MESHTASTIC_NODEID
+    maxsendingattempts: int = DEFAULT_MESHTASTIC_MAXSENDINGATTEMPTS
 
 
 @dataclass(frozen=True)
 class MeshtasticConfig:
-    """An MESHTASTIC bot configuration."""
+    """An MESHTASTIC Interface configuration."""
 
-    server: Optional[MeshtasticServer]
-    nickname: str
-    realname: str
-    commands: list[str]
-    channels: set[MeshtasticChannel]
+    connection: Optional[MeshtasticConnection]
 
 
 def load_config(path: Path) -> Config:
@@ -103,73 +87,32 @@ def _get_http_config(data: dict[str, Any]) -> HttpConfig:
 
     host = data_http.get('host', DEFAULT_HTTP_HOST)
     port = int(data_http.get('port', DEFAULT_HTTP_PORT))
-    api_tokens = set(data_http.get('api_tokens', []))
-    channel_tokens_to_channel_names = _get_channel_tokens_to_channel_names(data)
 
-    return HttpConfig(host, port, api_tokens, channel_tokens_to_channel_names)
-
-
-def _get_channel_tokens_to_channel_names(
-    data: dict[str, Any]
-) -> dict[str, str]:
-    channel_tokens_to_channel_names = {}
-
-    for channel in data['meshtastic'].get('channels', []):
-        channel_name = channel['name']
-
-        tokens = set(channel.get('tokens', []))
-        for token in tokens:
-            if token in channel_tokens_to_channel_names:
-                raise ConfigurationError(
-                    f'A channel token for channel "{channel_name}" '
-                    'is already configured somewhere else.'
-                )
-
-            channel_tokens_to_channel_names[token] = channel_name
-
-    return channel_tokens_to_channel_names
+    return HttpConfig(host, port)
 
 
 def _get_meshtastic_config(data: dict[str, Any]) -> MeshtasticConfig:
     data_meshtastic = data['meshtastic']
 
-    server = _get_meshtastic_server(data_meshtastic)
-    nickname = data_meshtastic['bot']['nickname']
-    realname = data_meshtastic['bot'].get('realname', DEFAULT_MESHTASTIC_REALNAME)
-    commands = data_meshtastic.get('commands', [])
-    channels = set(_get_meshtastic_channels(data_meshtastic))
+    connection = _get_meshtastic_connection(data_meshtastic)
 
     return MeshtasticConfig(
-        server=server,
-        nickname=nickname,
-        realname=realname,
-        commands=commands,
-        channels=channels,
+        connection=connection,
     )
 
 
-def _get_meshtastic_server(data_meshtastic: Any) -> Optional[MeshtasticServer]:
-    data_server = data_meshtastic.get('server')
-    if data_server is None:
+def _get_meshtastic_connection(data_meshtastic: Any) -> Optional[MeshtasticConnection]:
+    data_connection = data_meshtastic.get('connection')
+    if data_connection is None:
         return None
 
-    host = data_server.get('host')
-    if not host:
+    maxsendingattempts = data_connection.get('maxsendingattempts')
+    tty = data_connection.get('tty')
+    if not tty:
         return None
 
-    port = int(data_server.get('port', DEFAULT_MESHTASTIC_SERVER_PORT))
-    ssl = data_server.get('ssl', False)
-    password = data_server.get('password')
-    rate_limit_str = data_server.get('rate_limit')
-    rate_limit = float(rate_limit_str) if rate_limit_str else None
+    nodeid = int(data_connection.get('nodeid', DEFAULT_MESHTASTIC_NODEID))
 
-    return MeshtasticServer(
-        host=host, port=port, ssl=ssl, password=password, rate_limit=rate_limit
+    return MeshtasticConnection(
+        tty=tty, nodeid=nodeid, maxsendingattempts=maxsendingattempts
     )
-
-
-def _get_meshtastic_channels(data_meshtastic: Any) -> Iterator[MeshtasticChannel]:
-    for channel in data_meshtastic.get('channels', []):
-        name = channel['name']
-        password = channel.get('password')
-        yield MeshtasticChannel(name, password)

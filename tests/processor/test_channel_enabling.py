@@ -28,7 +28,7 @@ def test_channel_enabling_on_join_signal():
 def create_processor():
     http_config = HttpConfig(
         host='127.0.0.1',
-        port='8080',
+        port='9119',
         api_tokens=set(),
         channel_tokens_to_channel_names={},
     )

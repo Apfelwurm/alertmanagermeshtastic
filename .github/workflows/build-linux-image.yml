@@ -1,22 +1,18 @@
 name: linux/amd64
 
 on:
-  # push:
-  #   branches: [ main ]
-  #   paths:
-  #   - '**'
-  #   - '!README.md'
-  #   - '!.github/workflows/update-dockerhub.yml'
-  # pull_request:
-  #   branches: [ main ]
-  #   paths:
-  #   - '**'
-  #   - '!README.md'
-  #   - '!.github/workflows/update-dockerhub.yml'
-
-  repository_dispatch: # Allows action to be triggered via webhook
-    types: 
-      - pypi-published
+  push:
+    branches: [ main ]
+    paths:
+    - '**'
+    - '!README.md'
+    - '!.github/workflows/update-dockerhub.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+    - '**'
+    - '!README.md'
+    - '!.github/workflows/update-dockerhub.yml'
 
 jobs:
   build-and-push:
