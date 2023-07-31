@@ -5,6 +5,9 @@ on:
     paths:
       - "**"
       - "!README.md"
+      - "!todo"
+      - "!test.sh"
+      - "!testsingle.sh"
 
   workflow_dispatch: # Allows action to be run manually from the Actions tab
 

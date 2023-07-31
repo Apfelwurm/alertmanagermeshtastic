@@ -1,5 +1,0 @@
-flask
-meshtastic
-Flask-BasicAuth
-gunicorn
-python-dateutil

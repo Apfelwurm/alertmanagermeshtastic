@@ -2,8 +2,6 @@ recreate repository based on yogis commits and with the right name
 recreate docker hub repository
 go over debug logging
 map timeout to parameter
-test alertmanager
-pipy reenable
 readme update
 
 
