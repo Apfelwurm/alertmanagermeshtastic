@@ -1,18 +1,20 @@
 name: linux/amd64
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-    - '**'
-    - '!README.md'
-    - '!.github/workflows/update-dockerhub.yml'
-  pull_request:
-    branches: [ main ]
-    paths:
-    - '**'
-    - '!README.md'
-    - '!.github/workflows/update-dockerhub.yml'
+  # push:
+  #   branches: [ main ]
+  #   paths:
+  #   - '**'
+  #   - '!README.md'
+  #   - '!.github/workflows/update-dockerhub.yml'
+  # pull_request:
+  #   branches: [ main ]
+  #   paths:
+  #   - '**'
+  #   - '!README.md'
+  #   - '!.github/workflows/update-dockerhub.yml'
+  repository_dispatch:
+    types: [release-created]
 
 jobs:
   build-and-push:
@@ -35,6 +37,7 @@ jobs:
           build-args: |
             BUILDNODE=GitHub (Run Number: ${{ github.run_number }} Run ID: ${{ github.run_id }})
             SOURCE_COMMIT=${{ github.sha }}
+            VERSION=${{ github.event.client_payload.next_release_tag }}
           no-cache: true
       - name: Login to DockerHub
         if: ${{ github.event_name != 'pull_request' }}
