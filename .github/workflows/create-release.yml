@@ -16,7 +16,7 @@ name: create app release
 
 jobs:
   create-releases:
-    name: Release Go Binary
+    name: create-releases
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -38,4 +38,4 @@ jobs:
         uses: peter-evans/repository-dispatch@v2
         with:
           event-type: release-created
-          client-payload: '{"next_release_tag": ${{ steps.generate_release_tag.outputs.next_release_tag }}}'
+          client-payload: '{"next_release_tag": "${{ steps.generate_release_tag.outputs.next_release_tag }}"}'
