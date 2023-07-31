@@ -18,6 +18,7 @@ WORKDIR /app
 
 # Don't run as root.
 RUN useradd --create-home user
+RUN usermod -a -G dialout user
 USER user
 ENV PATH /home/user/.local/bin:$PATH
 
