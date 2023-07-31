@@ -8,6 +8,7 @@ readme update
 
 
 future (maybe):
+-tests
 -implement back api token
 -implement basic auth
 -env variables
