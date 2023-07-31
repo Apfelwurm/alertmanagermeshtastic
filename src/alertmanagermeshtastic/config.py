@@ -9,13 +9,12 @@ Configuration loading
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass
-import logging
 from pathlib import Path
-from typing import Any, Iterator, Optional
+from typing import Any, Optional
 
 import rtoml
-
 
 DEFAULT_HTTP_HOST = '127.0.0.1'
 DEFAULT_HTTP_PORT = 9119
@@ -101,7 +100,9 @@ def _get_meshtastic_config(data: dict[str, Any]) -> MeshtasticConfig:
     )
 
 
-def _get_meshtastic_connection(data_meshtastic: Any) -> Optional[MeshtasticConnection]:
+def _get_meshtastic_connection(
+    data_meshtastic: Any,
+) -> Optional[MeshtasticConnection]:
     data_connection = data_meshtastic.get('connection')
     if data_connection is None:
         return None

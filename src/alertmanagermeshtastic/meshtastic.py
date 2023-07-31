@@ -10,14 +10,11 @@ Internet Relay Chat
 
 from __future__ import annotations
 import logging
-from typing import Optional
 import meshtastic, meshtastic.serial_interface
 
 from dateutil import parser
 from .config import MeshtasticConfig, MeshtasticConnection
-from .util import start_thread
 import time
-
 
 
 logger = logging.getLogger(__name__)
@@ -100,18 +97,22 @@ class MeshtasticAnnouncer(Announcer):
                         self.meshtasticinterface.waitForAckNak()
 
                         start_time = time.time()
-                        timeout = 30
+                        timeout = 60
 
                         while True:
                             # Check if value is True
-                            if self.meshtasticinterface._acknowledgment.receivedAck:
+                            if (
+                                self.meshtasticinterface._acknowledgment.receivedAck
+                            ):
                                 print("got ack received from meshtastic")
                                 break
 
                             # Check if timeout has been reached
                             if time.time() - start_time > timeout:
                                 print("Timeout reached!")
-                                raise Exception("No ack received from meshtastic within the timeout")
+                                raise Exception(
+                                    "No ack received from meshtastic within the timeout"
+                                )
                                 break
 
                             # Sleep for a short period to avoid a busy wait
@@ -165,7 +166,9 @@ class MeshtasticAnnouncer(Announcer):
         if "summary" in alert["annotations"]:
             message += "Summary: " + alert["annotations"]["summary"] + "\n"
         if 'description' in alert['annotations']:
-            message += "Description: "+alert['annotations']['description']+"\n"
+            message += (
+                "Description: " + alert['annotations']['description'] + "\n"
+            )
         if alert["status"] == "resolved":
             correctdate = parser.parse(alert["endsAt"]).strftime(
                 "%Y-%m-%d %H:%M:%S"

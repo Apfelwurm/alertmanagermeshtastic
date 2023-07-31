@@ -10,13 +10,10 @@ HTTP server to receive messages
 
 from __future__ import annotations
 from http import HTTPStatus
-import json
 import logging
 import sys
-from typing import Optional
 from wsgiref.simple_server import make_server, ServerHandler, WSGIServer
 
-from werkzeug.datastructures import Headers
 from werkzeug.exceptions import abort, HTTPException
 from werkzeug.routing import Map, Rule
 from werkzeug.wrappers import Request, Response

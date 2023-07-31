@@ -1,0 +1,16 @@
+recreate repository based on yogis commits and with the right name
+recreate docker hub repository
+go over debug logging
+map timeout to parameter
+test alertmanager
+pipy reenable
+readme update
+
+
+future (maybe):
+-implement back api token
+-implement basic auth
+-env variables
+-multiple nodeIDs
+-public channel
+-config via env variables
