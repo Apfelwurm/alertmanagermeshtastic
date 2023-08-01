@@ -101,7 +101,7 @@ class MeshtasticAnnouncer(Announcer):
                     )
                     try:
                         self.meshtasticinterface.sendText(
-                            alert["qn"] + "\n" + chunk,
+                            str(alert["qn"]) + "\n" + chunk,
                             self.connection.nodeid,
                             True,
                             False,

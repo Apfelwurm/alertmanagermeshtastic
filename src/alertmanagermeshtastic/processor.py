@@ -47,7 +47,7 @@ class Processor:
         self.qn = self.qn + 1
         alert["qn"] = self.qn
         logger.debug(
-            '\t [%s][%d] put in queue qn',
+            '\t [%s][%d] put in queue',
             alert["fingerprint"],
             alert["qn"],
         )
