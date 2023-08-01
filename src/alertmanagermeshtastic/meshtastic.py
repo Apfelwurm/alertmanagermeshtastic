@@ -218,10 +218,10 @@ class MeshtasticAnnouncer(Announcer):
             message += "Info: " + alert["annotations"]["info"] + "\n"
         if "summary" in alert["annotations"]:
             message += "Summary: " + alert["annotations"]["summary"] + "\n"
-        if 'description' in alert['annotations']:
-            message += (
-                "Description: " + alert['annotations']['description'] + "\n"
-            )
+        # if 'description' in alert['annotations']:
+        #     message += (
+        #         "Description: " + alert['annotations']['description'] + "\n"
+        #     )
         if alert["status"] == "resolved":
             correctdate = parser.parse(alert["endsAt"]).strftime(
                 "%Y-%m-%d %H:%M:%S"
