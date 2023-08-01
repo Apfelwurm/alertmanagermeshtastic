@@ -101,7 +101,13 @@ class MeshtasticAnnouncer(Announcer):
                     )
                     try:
                         self.meshtasticinterface.sendText(
-                            str(alert["qn"]) + "\n" + chunk,
+                            str(alert["qn"])
+                            + ":"
+                            + str(index)
+                            + "/"
+                            + str(total_chunks)
+                            + "\n"
+                            + chunk,
                             self.connection.nodeid,
                             True,
                             False,
@@ -177,7 +183,7 @@ class MeshtasticAnnouncer(Announcer):
         chunk_size = 150
         if len(message) > chunk_size:
             logger.debug(
-                "\t[%s][%d] Message to big, split to chunks",
+                "\t [%s][%d] Message to big, split to chunks",
                 alert["fingerprint"],
                 alert["qn"],
             )
@@ -188,7 +194,7 @@ class MeshtasticAnnouncer(Announcer):
             return chunks
         else:
             logger.debug(
-                "\t[%s][%d] Message size okay",
+                "\t [%s][%d] Message size okay",
                 alert["fingerprint"],
                 alert["qn"],
             )
