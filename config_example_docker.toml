@@ -1,13 +1,10 @@
 [http]
 host = "0.0.0.0"
-port = 8080
+port = 9119
 
-[irc.server]
-host = "irc.server.example"
-port = 6667
+[meshtastic.connection]
+tty = "/dev/ttyACM0"
+nodeid = 123456789
+maxsendingattempts = 30
+timeout = 60
 
-[irc.bot]
-nickname = "Weitersager"
-
-[[irc.channels]]
-name = "#party"

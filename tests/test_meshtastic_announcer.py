@@ -3,20 +3,20 @@
 :License: MIT, see LICENSE for details.
 """
 
-from irc.client import Event, NickMask, ServerConnection
+from meshtastic.client import Event, NickMask, ServerConnection
 import pytest
 
-from weitersager.irc import create_announcer, IrcChannel, IrcConfig, IrcServer
-from weitersager.signals import irc_channel_joined
+from alertmanagermeshtastic.meshtastic import create_announcer, MeshtasticChannel, MeshtasticConfig, MeshtasticServer
+from alertmanagermeshtastic.signals import meshtastic_channel_joined
 
 
 @pytest.fixture
 def config():
-    server = IrcServer('irc.server.test')
+    server = MeshtasticServer('meshtastic.server.test')
 
-    channels = {IrcChannel('#one'), IrcChannel('#two')}
+    channels = {MeshtasticChannel('#one'), MeshtasticChannel('#two')}
 
-    return IrcConfig(
+    return MeshtasticConfig(
         server=server,
         nickname='nick',
         realname='Nick',
@@ -40,7 +40,7 @@ def nickmask(config):
 
 
 def test_get_version(bot):
-    assert bot.get_version() == 'Weitersager'
+    assert bot.get_version() == 'alertmanagermeshtastic'
 
 
 def test_channel_joins(config, bot, nickmask, monkeypatch):
@@ -61,8 +61,8 @@ def test_channel_joins(config, bot, nickmask, monkeypatch):
 
     received_signal_data = []
 
-    @irc_channel_joined.connect
-    def handle_irc_channel_joined(sender, **data):
+    @meshtastic_channel_joined.connect
+    def handle_meshtastic_channel_joined(sender, **data):
         received_signal_data.append(data)
 
     with monkeypatch.context() as mpc:

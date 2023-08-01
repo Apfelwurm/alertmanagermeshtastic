@@ -1,5 +1,5 @@
 include .dockerignore
-include assets/weitersager_logo.svg
+include assets/alertmanagermeshtastic_logo.svg
 include CHANGES.rst
 include compose.yaml
 include config_example.toml
@@ -9,5 +9,5 @@ include requirements.txt
 include requirements-dev.txt
 include requirements-release.txt
 include requirements-test.txt
-graft tests
+#graft tests
 global-exclude *.pyc

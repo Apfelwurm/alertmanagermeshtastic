@@ -137,7 +137,7 @@ def test_server_response_header(server):
 
     response = urlopen(request)
 
-    assert response.headers['Server'] == 'Weitersager'
+    assert response.headers['Server'] == 'alertmanagermeshtastic'
 
 
 # helpers

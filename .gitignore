@@ -3,6 +3,7 @@ __pycache__
 
 # virtual environment
 venv/
+.venv/
 
 # testing
 .coverage

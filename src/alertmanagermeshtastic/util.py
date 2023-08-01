@@ -1,5 +1,5 @@
 """
-weitersager.util
+alertmanagermeshtastic.util
 ~~~~~~~~~~~~~~~~
 
 Utilities

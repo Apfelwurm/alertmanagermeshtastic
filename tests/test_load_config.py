@@ -5,11 +5,11 @@
 
 from io import StringIO
 
-from weitersager.config import (
+from alertmanagermeshtastic.config import (
     HttpConfig,
-    IrcChannel,
-    IrcConfig,
-    IrcServer,
+    MeshtasticChannel,
+    MeshtasticConfig,
+    MeshtasticServer,
     load_config,
 )
 
@@ -22,18 +22,18 @@ host = "0.0.0.0"
 port = 55555
 api_tokens = ["qsSUx9KM-DBuDndUhGNi9_kxNHd08TypiHYM05ZTxVc"]
 
-[irc.server]
+[meshtastic.server]
 host = "orion.astrochat.test"
 port = 6669
 ssl = true
 password = "ToTheStars!"
 rate_limit = 0.5
 
-[irc.bot]
+[meshtastic.bot]
 nickname = "SpaceCowboy"
-realname = "Monsieur Weitersager"
+realname = "Monsieur alertmanagermeshtastic"
 
-[irc]
+[meshtastic]
 commands = [
   "MODE SpaceCowboy +i",
 ]
@@ -59,8 +59,8 @@ def test_load_config():
         channel_tokens_to_channel_names={},
     )
 
-    assert config.irc == IrcConfig(
-        server=IrcServer(
+    assert config.meshtastic == MeshtasticConfig(
+        server=MeshtasticServer(
             host='orion.astrochat.test',
             port=6669,
             ssl=True,
@@ -68,23 +68,23 @@ def test_load_config():
             rate_limit=0.5,
         ),
         nickname='SpaceCowboy',
-        realname='Monsieur Weitersager',
+        realname='Monsieur alertmanagermeshtastic',
         commands=[
             'MODE SpaceCowboy +i',
         ],
         channels={
-            IrcChannel('#skyscreeners'),
-            IrcChannel('#elite-astrology', password='twinkle-twinkle'),
-            IrcChannel('#hubblebubble'),
+            MeshtasticChannel('#skyscreeners'),
+            MeshtasticChannel('#elite-astrology', password='twinkle-twinkle'),
+            MeshtasticChannel('#hubblebubble'),
         },
     )
 
 
 TOML_CONFIG_WITH_DEFAULTS = '''\
-[irc.server]
-host = "irc.onlinetalk.test"
+[meshtastic.server]
+host = "meshtastic.onlinetalk.test"
 
-[irc.bot]
+[meshtastic.bot]
 nickname = "TownCrier"
 '''
 
@@ -98,51 +98,51 @@ def test_load_config_with_defaults():
 
     assert config.http == HttpConfig(
         host='127.0.0.1',
-        port=8080,
+        port=9119,
         api_tokens=set(),
         channel_tokens_to_channel_names={},
     )
 
-    assert config.irc == IrcConfig(
-        server=IrcServer(
-            host='irc.onlinetalk.test',
+    assert config.meshtastic == MeshtasticConfig(
+        server=MeshtasticServer(
+            host='meshtastic.onlinetalk.test',
             port=6667,
             ssl=False,
             password=None,
             rate_limit=None,
         ),
         nickname='TownCrier',
-        realname='Weitersager',
+        realname='alertmanagermeshtastic',
         commands=[],
         channels=set(),
     )
 
 
-TOML_CONFIG_WITHOUT_IRC_SERVER_TABLE = '''\
-[irc.bot]
+TOML_CONFIG_WITHOUT_MESHTASTIC_SERVER_TABLE = '''\
+[meshtastic.bot]
 nickname = "Lokalrunde"
 '''
 
 
-def test_load_config_without_irc_server_table():
-    toml = StringIO(TOML_CONFIG_WITHOUT_IRC_SERVER_TABLE)
+def test_load_config_without_meshtastic_server_table():
+    toml = StringIO(TOML_CONFIG_WITHOUT_MESHTASTIC_SERVER_TABLE)
 
     config = load_config(toml)
 
-    assert config.irc.server is None
+    assert config.meshtastic.server is None
 
 
-TOML_CONFIG_WITHOUT_IRC_SERVER_HOST = '''\
-[irc.server]
+TOML_CONFIG_WITHOUT_MESHTASTIC_SERVER_HOST = '''\
+[meshtastic.server]
 
-[irc.bot]
+[meshtastic.bot]
 nickname = "Lokalrunde"
 '''
 
 
-def test_load_config_without_irc_server_host():
-    toml = StringIO(TOML_CONFIG_WITHOUT_IRC_SERVER_HOST)
+def test_load_config_without_meshtastic_server_host():
+    toml = StringIO(TOML_CONFIG_WITHOUT_MESHTASTIC_SERVER_HOST)
 
     config = load_config(toml)
 
-    assert config.irc.server is None
+    assert config.meshtastic.server is None

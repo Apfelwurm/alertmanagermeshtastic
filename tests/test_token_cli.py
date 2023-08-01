@@ -5,7 +5,7 @@
 
 import pytest
 
-from weitersager.tokencli import generate_token
+from alertmanagermeshtastic.tokencli import generate_token
 
 
 def test_generate_token():

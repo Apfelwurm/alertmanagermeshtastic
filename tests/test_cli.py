@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from weitersager.cli import parse_args
+from alertmanagermeshtastic.cli import parse_args
 
 
 def test_parse_args_without_args():

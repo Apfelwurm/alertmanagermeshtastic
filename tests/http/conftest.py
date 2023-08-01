@@ -7,8 +7,8 @@ from threading import Thread
 
 import pytest
 
-from weitersager.config import HttpConfig
-from weitersager.http import create_server
+from alertmanagermeshtastic.config import HttpConfig
+from alertmanagermeshtastic.http import create_server
 
 
 @pytest.fixture

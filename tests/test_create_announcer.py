@@ -5,24 +5,24 @@
 
 import pytest
 
-from weitersager.irc import (
+from alertmanagermeshtastic.meshtastic import (
     create_announcer,
     DummyAnnouncer,
-    IrcAnnouncer,
-    IrcConfig,
-    IrcServer,
+    MeshtasticAnnouncer,
+    MeshtasticConfig,
+    MeshtasticServer,
 )
 
 
 @pytest.mark.parametrize(
     'server, expected_type',
     [
-        (IrcServer('irc.server.test'), IrcAnnouncer),
+        (MeshtasticServer('meshtastic.server.test'), MeshtasticAnnouncer),
         (None, DummyAnnouncer),
     ],
 )
 def test_create_announcer(server, expected_type):
-    config = IrcConfig(
+    config = MeshtasticConfig(
         server=server,
         nickname='nick',
         realname='Nick',

@@ -1,5 +1,5 @@
 """
-weitersager.signals
+alertmanagermeshtastic.signals
 ~~~~~~~~~~~~~~~~~~~
 
 Signals
@@ -11,5 +11,4 @@ Signals
 from blinker import Signal
 
 
-irc_channel_joined = Signal()
 message_received = Signal()

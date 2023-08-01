@@ -1,5 +1,5 @@
 """
-weitersager.cli
+alertmanagermeshtastic.cli
 ~~~~~~~~~~~~~~~
 
 Command line entry point
@@ -23,14 +23,14 @@ def parse_args(args: list[str]) -> Namespace:
     """Parse command line arguments."""
     parser = ArgumentParser()
     parser.add_argument(
-        '--version', action='version', version=f'Weitersager {VERSION}'
+        '--version', action='version', version=f'alertmanagermeshtastic {VERSION}'
     )
     parser.add_argument('config_filename', type=Path)
     return parser.parse_args(args)
 
 
 def main() -> None:
-    """Load the configuration file, start the IRC bot and HTTP listen server."""
+    """Load the configuration file, start the MESHTASTIC Interface and HTTP listen server."""
     namespace = parse_args(sys.argv[1:])
     config = load_config(namespace.config_filename)
     configure_logging(config.log_level)
