@@ -20,6 +20,7 @@ DEFAULT_HTTP_HOST = '127.0.0.1'
 DEFAULT_HTTP_PORT = 9119
 DEFAULT_MESHTASTIC_NODEID = 123456789
 DEFAULT_MESHTASTIC_MAXSENDINGATTEMPTS = 5
+DEFAULT_MESHTASTIC_TIMEOUT = 60
 
 
 class ConfigurationError(Exception):
@@ -48,6 +49,7 @@ class MeshtasticConnection:
     tty: str
     nodeid: int = DEFAULT_MESHTASTIC_NODEID
     maxsendingattempts: int = DEFAULT_MESHTASTIC_MAXSENDINGATTEMPTS
+    timeout: int = DEFAULT_MESHTASTIC_TIMEOUT
 
 
 @dataclass(frozen=True)
@@ -108,6 +110,7 @@ def _get_meshtastic_connection(
         return None
 
     maxsendingattempts = data_connection.get('maxsendingattempts')
+    timeout = data_connection.get('timeout')
     tty = data_connection.get('tty')
     if not tty:
         return None
@@ -115,5 +118,8 @@ def _get_meshtastic_connection(
     nodeid = int(data_connection.get('nodeid', DEFAULT_MESHTASTIC_NODEID))
 
     return MeshtasticConnection(
-        tty=tty, nodeid=nodeid, maxsendingattempts=maxsendingattempts
+        tty=tty,
+        nodeid=nodeid,
+        maxsendingattempts=maxsendingattempts,
+        timeout=timeout,
     )

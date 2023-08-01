@@ -48,10 +48,11 @@ class MeshtasticAnnouncer(Announcer):
     def start(self) -> None:
         """Connect to the connection, in a separate thread."""
         logger.info(
-            'Connecting to MESHTASTIC connection %s, the node is %d and messages will be sent %d times before failing',
+            '\t Connecting to MESHTASTIC connection %s, the node is %d and messages will be sent %d times with timeout %d before failing',
             self.connection.tty,
             self.connection.nodeid,
             self.connection.maxsendingattempts,
+            self.connection.timeout,
         )
 
         # start_thread(self.meshtasticinterface.start)
@@ -64,29 +65,50 @@ class MeshtasticAnnouncer(Announcer):
 
             except Exception as e:
                 logger.error(
-                    "\t Message formatting failed: %s",
+                    "\t [%s][%d] Message formatting failed: %s",
+                    alert["fingerprint"],
+                    alert["qn"],
                     e,
                 )
                 raise
 
             try:
-                chunks = self.splitmessagesifnessecary(message)
+                chunks = self.splitmessagesifnessecary(message, alert)
+                total_chunks = len(chunks)
+                logger.debug(
+                    "\t [%s][%d] splitted in %d chunks",
+                    alert["fingerprint"],
+                    alert["qn"],
+                    total_chunks,
+                )
 
             except Exception as e:
                 logger.error(
-                    "\t could not split in chunks: %s",
+                    "\t [%s][%d] could not split in chunks: %s",
+                    alert["fingerprint"],
+                    alert["qn"],
                     e,
                 )
                 raise
 
-            for chunk in chunks:
+            for index, chunk in enumerate(chunks):
                 for attempt in range(self.connection.maxsendingattempts):
                     logger.debug(
-                        "\tsending chunk attempt %d :%s ", attempt, chunk
+                        "\t [%s][%d][%d] sending attempt %d ",
+                        alert["fingerprint"],
+                        alert["qn"],
+                        index,
+                        attempt,
                     )
                     try:
                         self.meshtasticinterface.sendText(
-                            chunk,
+                            str(alert["qn"])
+                            + ":"
+                            + str(index + 1)
+                            + "/"
+                            + str(total_chunks)
+                            + "\n"
+                            + chunk,
                             self.connection.nodeid,
                             True,
                             False,
@@ -95,21 +117,33 @@ class MeshtasticAnnouncer(Announcer):
                             ).onAckNak,
                         )
                         self.meshtasticinterface.waitForAckNak()
-
                         start_time = time.time()
-                        timeout = 60
-
                         while True:
                             # Check if value is True
                             if (
                                 self.meshtasticinterface._acknowledgment.receivedAck
                             ):
-                                print("got ack received from meshtastic")
+                                logger.debug(
+                                    "\t [%s][%d][%d] got ack received from meshtastic on attempt %d",
+                                    alert["fingerprint"],
+                                    alert["qn"],
+                                    index,
+                                    attempt,
+                                )
                                 break
 
                             # Check if timeout has been reached
-                            if time.time() - start_time > timeout:
-                                print("Timeout reached!")
+                            if (
+                                time.time() - start_time
+                                > self.connection.timeout
+                            ):
+                                logger.debug(
+                                    "\t [%s][%d][%d] Timeout reached on attempt %d!",
+                                    alert["fingerprint"],
+                                    alert["qn"],
+                                    index,
+                                    attempt,
+                                )
                                 raise Exception(
                                     "No ack received from meshtastic within the timeout"
                                 )
@@ -119,32 +153,52 @@ class MeshtasticAnnouncer(Announcer):
                             time.sleep(0.1)
 
                         logger.debug(
-                            "\tsending chunk attempt %d success ", attempt
+                            "\t [%s][%d][%d] success on attempt %d  ",
+                            alert["fingerprint"],
+                            alert["qn"],
+                            index,
+                            attempt,
                         )
                         break
                     except Exception as e:
                         logger.error(
-                            "\t chunk Attempt %d failed with error: %s",
-                            attempt + 1,
+                            "\t [%s][%d][%d] failed on attempt %d with error: %s",
+                            alert["fingerprint"],
+                            alert["qn"],
+                            index,
+                            attempt,
                             e,
                         )
                         if attempt == self.connection.maxsendingattempts - 1:
                             raise
 
         except Exception as e:
-            logger.error("\t send Attempt failed with error: %s", e)
+            logger.error(
+                "\t [%s][%d] send Attempt failed with error: %s",
+                alert["fingerprint"],
+                alert["qn"],
+                e,
+            )
 
-    def splitmessagesifnessecary(self, message):
-        chunk_size = 150
+    def splitmessagesifnessecary(self, message, alert):
+        chunk_size = 160
         if len(message) > chunk_size:
-            logger.debug("\tMessage to big, split to chunks")
+            logger.debug(
+                "\t [%s][%d] Message to big, split to chunks",
+                alert["fingerprint"],
+                alert["qn"],
+            )
             chunks = [
                 message[i : i + chunk_size]
                 for i in range(0, len(message), chunk_size)
             ]
             return chunks
         else:
-            logger.debug("\tMessage size okay")
+            logger.debug(
+                "\t [%s][%d] Message size okay",
+                alert["fingerprint"],
+                alert["qn"],
+            )
             return [message]
 
     def formatalert(self, alert):
@@ -165,10 +219,10 @@ class MeshtasticAnnouncer(Announcer):
             message += "Info: " + alert["annotations"]["info"] + "\n"
         if "summary" in alert["annotations"]:
             message += "Summary: " + alert["annotations"]["summary"] + "\n"
-        if 'description' in alert['annotations']:
-            message += (
-                "Description: " + alert['annotations']['description'] + "\n"
-            )
+        # if 'description' in alert['annotations']:
+        #     message += (
+        #         "Description: " + alert['annotations']['description'] + "\n"
+        #     )
         if alert["status"] == "resolved":
             correctdate = parser.parse(alert["endsAt"]).strftime(
                 "%Y-%m-%d %H:%M:%S"
@@ -216,7 +270,7 @@ def create_announcer(config: MeshtasticConfig) -> Announcer:
     """Create an announcer."""
     if config.connection is None:
         logger.info(
-            'No MESHTASTIC connection specified; will write to STDOUT instead.'
+            '\t No MESHTASTIC connection specified; will write to STDOUT instead.'
         )
         return DummyAnnouncer()
 

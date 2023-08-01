@@ -1,9 +1,8 @@
 recreate repository based on yogis commits and with the right name
 recreate docker hub repository
-go over debug logging
-map timeout to parameter
-readme update
-
+cleanup pypi
+serial disconnect handling
+move todo to issues
 
 future (maybe):
 -tests
