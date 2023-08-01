@@ -34,6 +34,7 @@ jobs:
           file: Dockerfile
           tags: |
             apfelwurm/alertmanagermeshtastic:latest
+            apfelwurm/alertmanagermeshtastic:${{ github.event.client_payload.next_release_tag }}
           build-args: |
             BUILDNODE=GitHub (Run Number: ${{ github.run_number }} Run ID: ${{ github.run_id }})
             SOURCE_COMMIT=${{ github.sha }}
@@ -48,3 +49,6 @@ jobs:
       - name: Push to Docker HUB
         if: ${{ github.event_name != 'pull_request' }}
         run: docker push apfelwurm/alertmanagermeshtastic:latest
+      - name: Push to Docker HUB
+        if: ${{ github.event_name != 'pull_request' }}
+        run: docker push apfelwurm/alertmanagermeshtastic:${{ github.event.client_payload.next_release_tag }}
