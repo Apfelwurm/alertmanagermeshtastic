@@ -63,7 +63,7 @@ class Application:
             data = _extract_payload(request, {'alerts'})
 
             for alert in data["alerts"]:
-                logger.debug("\t put in queue: %s", alert["fingerprint"])
+                logger.debug("\t [%s] received", alert["fingerprint"])
                 message_received.send(alert=alert)
             return Response('Alert OK', status=HTTPStatus.OK)
         except Exception as error:

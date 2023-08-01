@@ -28,6 +28,7 @@ class Processor:
         self.announcer = create_announcer(config.meshtastic)
         self.enabled_channel_names: set[str] = set()
         self.message_queue: SimpleQueue = SimpleQueue()
+        self.qn = 0
 
         # Up to this point, no signals must have been sent.
         self.connect_to_signals()
@@ -36,10 +37,6 @@ class Processor:
     def connect_to_signals(self) -> None:
         message_received.connect(self.handle_message)
 
-    # def enable_channel(self, sender, *, channel_name=None) -> None:
-    #     logger.info('Enabled forwarding to channel %s.', channel_name)
-    #     self.enabled_channel_names.add(channel_name)
-
     def handle_message(
         self,
         sender: Optional[Any],
@@ -47,11 +44,13 @@ class Processor:
         alert: str,
     ) -> None:
         """Log and announce an incoming message."""
+        self.qn = self.qn + 1
+        alert["qn"] = self.qn
         logger.debug(
-            'Received message %s',
-            alert["fingerprint"]
+            '\t [%s][%d] put in queue qn',
+            alert["fingerprint"],
+            alert["qn"],
         )
-
         self.message_queue.put((alert))
 
     def announce_message(self, alert: str) -> None:
@@ -59,8 +58,12 @@ class Processor:
         self.announcer.announce(alert)
 
     def process_queue(self, timeout_seconds: Optional[int] = None) -> None:
+        logger.debug('\t Messages in queue: %d', self.message_queue.qsize())
         """Process a message from the queue."""
         alert = self.message_queue.get(timeout=timeout_seconds)
+        logger.debug(
+            '\t [%s][%d] processing message ', alert["fingerprint"], alert["qn"]
+        )
         self.announce_message(alert)
 
     def run(self) -> None:
@@ -68,14 +71,14 @@ class Processor:
         self.announcer.start()
         start_receive_server(self.config.http)
 
-        logger.info('Starting to process queue ...')
+        logger.info('\t Starting to process queue ...')
         try:
             while True:
                 self.process_queue()
         except KeyboardInterrupt:
             pass
 
-        logger.info('Shutting down ...')
+        logger.info('\t Shutting down ...')
         self.announcer.shutdown()
 
 
