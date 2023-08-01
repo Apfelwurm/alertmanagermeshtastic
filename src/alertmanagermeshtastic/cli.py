@@ -4,7 +4,7 @@ alertmanagermeshtastic.cli
 
 Command line entry point
 
-:Copyright: 2007-2022 Jochen Kupperschmidt
+:Copyright: 2007-2022 Jochen Kupperschmidt, Alexander Volz
 :License: MIT, see LICENSE for details.
 """
 
@@ -23,7 +23,9 @@ def parse_args(args: list[str]) -> Namespace:
     """Parse command line arguments."""
     parser = ArgumentParser()
     parser.add_argument(
-        '--version', action='version', version=f'alertmanagermeshtastic {VERSION}'
+        '--version',
+        action='version',
+        version=f'alertmanagermeshtastic {VERSION}',
     )
     parser.add_argument('config_filename', type=Path)
     return parser.parse_args(args)

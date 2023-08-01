@@ -2,7 +2,7 @@
 alertmanagermeshtastic.meshtastic
 ~~~~~~~~~~~~~~~
 
-Internet Relay Chat
+Meshtastic connection
 
 :Copyright: 2007-2022 Jochen Kupperschmidt, Alexander Volz
 :License: MIT, see LICENSE for details.
