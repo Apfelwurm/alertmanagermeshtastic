@@ -181,7 +181,7 @@ class MeshtasticAnnouncer(Announcer):
             )
 
     def splitmessagesifnessecary(self, message, alert):
-        chunk_size = 150
+        chunk_size = 160
         if len(message) > chunk_size:
             logger.debug(
                 "\t [%s][%d] Message to big, split to chunks",
