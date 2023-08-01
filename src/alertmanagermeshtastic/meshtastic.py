@@ -133,8 +133,9 @@ class MeshtasticAnnouncer(Announcer):
                                 break
 
                             # Check if timeout has been reached
-                            if time.time() - start_time > int(
-                                self.connection.timeout
+                            if (
+                                time.time() - start_time
+                                > self.connection.timeout
                             ):
                                 logger.debug(
                                     "\t [%s][%d][%d] Timeout reached on attempt %d!",
