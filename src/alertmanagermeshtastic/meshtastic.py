@@ -103,7 +103,7 @@ class MeshtasticAnnouncer(Announcer):
                         self.meshtasticinterface.sendText(
                             str(alert["qn"])
                             + ":"
-                            + str(index)
+                            + str(index + 1)
                             + "/"
                             + str(total_chunks)
                             + "\n"
