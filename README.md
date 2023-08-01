@@ -1,8 +1,8 @@
 # Alertmanager webhook for meshtastic
 
-[![linux/amd64](https://github.com/Apfelwurm/alertmanager-webhook-meshtastic-python/actions/workflows/build-linux-image.yml/badge.svg)](https://github.com/Apfelwurm/alertmanager-webhook-meshtastic-python/actions/workflows/build-linux-image.yml)
-[![dockerhub](https://img.shields.io/badge/dockerhub-images-important.svg?logo=Docker)](https://hub.docker.com/r/apfelwurm/alertmanager-webhook-meshtastic-python)
-[![github](https://img.shields.io/badge/github-repository-important.svg?logo=Github)](https://github.com/Apfelwurm/alertmanager-webhook-meshtastic-python)
+[![linux/amd64](https://github.com/Apfelwurm/alertmanagermeshtastic/actions/workflows/build-linux-image.yml/badge.svg)](https://github.com/Apfelwurm/alertmanagermeshtastic/actions/workflows/build-linux-image.yml)
+[![dockerhub](https://img.shields.io/badge/dockerhub-images-important.svg?logo=Docker)](https://hub.docker.com/r/apfelwurm/alertmanagermeshtastic)
+[![github](https://img.shields.io/badge/github-repository-important.svg?logo=Github)](https://github.com/Apfelwurm/alertmanagermeshtastic)
 
 
 This little Adapter receives alertmanager webhooks and sends the notifications via a over serial attached Meshtastic device to the specified nodeID. (currently not working and docs not updated!)
@@ -29,7 +29,7 @@ If you plan to use a virtual serial port that is provided with socat (for exampl
 
 ```
     alertmanagermeshtastic:
-      image: apfelwurm/alertmanager-webhook-meshtastic-python
+      image: apfelwurm/alertmanagermeshtastic
       ports:
         - 9119:9119
       volumes:
@@ -52,7 +52,7 @@ If you plan to use a virtual serial port that is provided with socat (for exampl
 
 ```
     alertmanagermeshtastic:
-      image: apfelwurm/alertmanager-webhook-meshtastic-python
+      image: apfelwurm/alertmanagermeshtastic
       ports:
         - 9119:9119
       volumes:
@@ -72,7 +72,7 @@ If you plan to use a virtual serial port that is provided with socat (for exampl
 ##  Running on docker example - Hardware Serial (default)
 
 ```
-    docker run -d --name alertmanager-webhook-meshtastic-python \
+    docker run -d --name alertmanagermeshtastic \
 		--device=/dev/ttyACM0 \
 		-e "meshtty=/dev/ttyACM0" \
       -e "maxsendingattempts=5" \
@@ -81,7 +81,7 @@ If you plan to use a virtual serial port that is provided with socat (for exampl
     	-e "username=XXXUSERNAME" \
     	-e "password=XXXPASSWORD" \
     	-e "loglevel=WARNING" \
-    	-p 9119:9119 apfelwurm/alertmanager-webhook-meshtastic-python:latest
+    	-p 9119:9119 apfelwurm/alertmanagermeshtastic:latest
 ```
 
 ##  Running on docker example - Virtual Serial
@@ -89,7 +89,7 @@ If you plan to use a virtual serial port that is provided with socat (for exampl
 If you plan to use a virtual serial port that is provided with socat (for example /tmp/vcom0), you have to use a volume mount instead of the device binding:
 
 ```
-    docker run -d --name alertmanager-webhook-meshtastic-python \
+    docker run -d --name alertmanagermeshtastic \
 		-v /tmp/vcom0:/tmp/vcom0 \
 		-e "meshtty=/tmp/vcom0" \
     	-e "nodeID=123456789" \
@@ -98,7 +98,7 @@ If you plan to use a virtual serial port that is provided with socat (for exampl
     	-e "username=XXXUSERNAME" \
     	-e "password=XXXPASSWORD" \
     	-e "loglevel=WARNING" \
-    	-p 9119:9119 apfelwurm/alertmanager-webhook-meshtastic-python:latest
+    	-p 9119:9119 apfelwurm/alertmanagermeshtastic:latest
 ```
 
 ## Contribution

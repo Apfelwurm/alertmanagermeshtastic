@@ -2,9 +2,9 @@ name: Update Docker Hub Description
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
-    - 'README.md'
+      - "README.md"
   workflow_dispatch: # Allows action to be run manually from the Actions tab
 
 jobs:
@@ -19,6 +19,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: apfelwurm/alertmanager-webhook-meshtastic-python
+          repository: apfelwurm/alertmanagermeshtastic
           short-description: "alertmanager gateway for meshtastic"
           readme-filepath: ./README.md
