@@ -8,3 +8,4 @@ port = 9119
 tty = "/tmp/vcom0"
 nodeid = 631724152
 maxsendingattempts = 30
+timeout = 60

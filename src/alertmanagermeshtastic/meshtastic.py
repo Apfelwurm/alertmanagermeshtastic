@@ -48,10 +48,11 @@ class MeshtasticAnnouncer(Announcer):
     def start(self) -> None:
         """Connect to the connection, in a separate thread."""
         logger.info(
-            '\t Connecting to MESHTASTIC connection %s, the node is %d and messages will be sent %d times before failing',
+            '\t Connecting to MESHTASTIC connection %s, the node is %d and messages will be sent %d times with timeout %d before failing',
             self.connection.tty,
             self.connection.nodeid,
             self.connection.maxsendingattempts,
+            self.connection.timeout,
         )
 
         # start_thread(self.meshtasticinterface.start)
@@ -116,10 +117,7 @@ class MeshtasticAnnouncer(Announcer):
                             ).onAckNak,
                         )
                         self.meshtasticinterface.waitForAckNak()
-
                         start_time = time.time()
-                        timeout = 60
-
                         while True:
                             # Check if value is True
                             if (
@@ -135,7 +133,10 @@ class MeshtasticAnnouncer(Announcer):
                                 break
 
                             # Check if timeout has been reached
-                            if time.time() - start_time > timeout:
+                            if (
+                                time.time() - start_time
+                                > self.connection.timeout
+                            ):
                                 logger.debug(
                                     "\t [%s][%d][%d] Timeout reached on attempt %d!",
                                     alert["fingerprint"],

@@ -5,4 +5,6 @@ port = 9119
 [meshtastic.connection]
 tty = "/dev/ttyACM0"
 nodeid = 123456789
-maxsendingattempts = 5
+maxsendingattempts = 30
+timeout = 60
+
