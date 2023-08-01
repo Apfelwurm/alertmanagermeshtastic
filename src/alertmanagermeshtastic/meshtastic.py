@@ -4,7 +4,8 @@ alertmanagermeshtastic.meshtastic
 
 Meshtastic connection
 
-:Copyright: 2007-2022 Jochen Kupperschmidt, Alexander Volz
+:Copyright: 2007-2022 Jochen Kupperschmidt
+:Copyright: 2023 Alexander Volz
 :License: MIT, see LICENSE for details.
 """
 
@@ -16,6 +17,7 @@ from dateutil import parser
 from .config import MeshtasticConfig, MeshtasticConnection
 import time
 
+from pubsub import pub
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +47,24 @@ class MeshtasticAnnouncer(Announcer):
 
         self.meshtasticinterface = _create_meshtasticinterface(connection)
 
+    def _onconnect(topic=pub.AUTO_TOPIC, interface=None):
+        logger.debug("\t Connected to meshtastic")
+
+    def _onconnectionlost(topic=pub.AUTO_TOPIC, interface=None):
+        del topic.meshtasticinterface
+        while True:
+            try:
+                topic.meshtasticinterface = _create_meshtasticinterface(
+                    topic.connection
+                )
+                break
+            except Exception as e:
+                logger.error(
+                    "\t Connnection to meshtastic failed with error: %s , retry in 2 seconds",
+                    e,
+                )
+                time.sleep(2)
+
     def start(self) -> None:
         """Connect to the connection, in a separate thread."""
         logger.info(
@@ -54,7 +74,8 @@ class MeshtasticAnnouncer(Announcer):
             self.connection.maxsendingattempts,
             self.connection.timeout,
         )
-
+        pub.subscribe(self._onconnectionlost, "meshtastic.connection.lost")
+        pub.subscribe(self._onconnect, "meshtastic.connection.established")
         # start_thread(self.meshtasticinterface.start)
 
     def announce(self, alert: str) -> None:
@@ -101,6 +122,9 @@ class MeshtasticAnnouncer(Announcer):
                         attempt,
                     )
                     try:
+                        while not hasattr(self, 'meshtasticinterface'):
+                            time.sleep(2)
+
                         self.meshtasticinterface.sendText(
                             str(alert["qn"])
                             + ":"

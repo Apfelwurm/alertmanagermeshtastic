@@ -4,7 +4,8 @@ alertmanagermeshtastic.processor
 
 Connect HTTP server and MESHTASTIC interface.
 
-:Copyright: 2007-2022 Jochen Kupperschmidt, Alexander Volz
+:Copyright: 2007-2022 Jochen Kupperschmidt
+:Copyright: 2023 Alexander Volz
 :License: MIT, see LICENSE for details.
 """
 

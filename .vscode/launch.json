@@ -9,8 +9,10 @@
             "type": "python",
             "request": "launch",
             "module": "src.alertmanagermeshtastic.cli",
-            "justMyCode": true,
-            "args": ["config_example.toml"]
+            "justMyCode": false,
+            "args": [
+                "config_example.toml"
+            ]
         }
     ]
 }

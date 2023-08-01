@@ -9,7 +9,7 @@
 This little Adapter receives alertmanager webhooks and sends the notifications via a over serial attached Meshtastic device to the specified nodeID.
 
 > **Warning**
-> Caution: The Tests that are provided for the code in this repository are not currently updated! Also this is a quickly hacked together peace of software, that has not built any security in it at the moment. If you have the skill and the time to contribute in any way, take a look at the [Contribution section](#contribution)
+> Caution: The Tests that are provided for the code in this repository are not currently updated! Also this is a quickly hacked together peace of software, that has not built any security in it at the moment. Also the way that the ack is checked is not optimal, so messages tend to take longer to get to the device, but are delivered for sure(maybe multiple times). If you have the skill and the time to contribute in any way, take a look at the [Contribution section](#contribution)
 
 ## Credits
 This is based on the work of https://github.com/homeworkprod/weitersager
