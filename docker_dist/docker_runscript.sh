@@ -1,3 +1,4 @@
+#!/bin/bash
 if [[ $SOCAT_ENABLE == "" ]]; then
     export SOCAT_ENABLE=FALSE
 fi
