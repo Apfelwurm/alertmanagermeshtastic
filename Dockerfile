@@ -22,10 +22,13 @@ RUN useradd --create-home user
 RUN usermod -a -G dialout user
 USER user
 ENV PATH /home/user/.local/bin:$PATH
+ENV SOCAT_ENABLE=FALSE
+ENV SOCAT_CONNECTION=""
 
 COPY --chown=user:user --from=builder /workdir/dist/alertmanagermeshtastic*.whl /app/
 COPY /docker_dist/docker_runscript.sh /app/runscript.sh
 COPY /docker_dist/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY /docker_dist/supervisord_socat.conf /app/supervisord_socat.conf
 
 RUN pip install alertmanagermeshtastic*.whl && rm -rf alertmanagermeshtastic*.whl
 RUN pip install toml-cli
