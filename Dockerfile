@@ -28,6 +28,7 @@ COPY --chown=user:user --from=builder /workdir/dist/alertmanagermeshtastic*.whl 
 RUN pip install alertmanagermeshtastic*.whl
 USER root
 COPY /docker_dist/docker_runscript.sh /app/runscript.sh
+COPY /docker_dist/socat_runscript.sh /app/socat_runscript.sh
 COPY /docker_dist/supervisord.conf /app/supervisord.conf
 COPY /docker_dist/supervisord_socat.conf /app/supervisord_socat.conf
 RUN chmod +x /app/runscript.sh

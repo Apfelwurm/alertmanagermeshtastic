@@ -10,7 +10,6 @@ if [[ $SOCAT_ENABLE == TRUE ]]; then
         exit 100
     fi
 
-    sed -i "s|%%SOCAT_CONNECTION%%|$SOCAT_CONNECTION|g" /app/supervisord_socat.conf
     cp -f /app/supervisord_socat.conf /etc/supervisor/conf.d/supervisord.conf
 
     toml set --toml-path /app/config.toml meshtastic.connection.tty "/tmp/vcom0"
