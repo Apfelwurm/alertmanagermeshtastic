@@ -30,7 +30,7 @@ COPY /docker_dist/docker_runscript.sh /app/runscript.sh
 COPY /docker_dist/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY /docker_dist/supervisord_socat.conf /app/supervisord_socat.conf
 
-RUN pip install alertmanagermeshtastic*.whl && rm -rf alertmanagermeshtastic*.whl
+RUN pip install alertmanagermeshtastic*.whl
 RUN pip install toml-cli
 RUN apt-get update && apt-get install -y \
     supervisord  \
