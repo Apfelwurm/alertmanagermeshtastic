@@ -47,15 +47,15 @@ timeout = 60
 ##  docker compose service example - Hardware Serial (default)
 
 To integrate this bridge into your composed prometheus/alertmanager cluster, this is a good startingpoint.
-If you plan to use a virtual serial port that is provided with socat (for example /tmp/vcom0), you have to use a volume mount instead of the device binding:
 
 ```
     alertmanagermeshtastic:
       image: apfelwurm/alertmanagermeshtastic
       ports:
         - 9119:9119
+      devices:
+        -/dev/ttyACM0
       volumes:
-        - /tmp/vcom0:/tmp/vcom0
         - ./alertmanager-meshtastic/config.toml:/app/config.toml
       restart: always
 ```
@@ -63,19 +63,22 @@ If you plan to use a virtual serial port that is provided with socat (for exampl
 ##  docker compose service example - Virtual Serial
 
 To integrate this bridge into your composed prometheus/alertmanager cluster, this is a good startingpoint.
-If you plan to use a virtual serial port that is provided with socat (for example /tmp/vcom0), you have to use a volume mount instead of the device binding:
+If you plan to use a virtual serial port that is provided with socat you have to use the socat connector in this container or run your alertmanagermeshtastic instance on the terminating linux machine, because the reconnecting is not working if you either mount it as volume or as a device.
 
 ```
     alertmanagermeshtastic:
       image: apfelwurm/alertmanagermeshtastic
       ports:
         - 9119:9119
+      environment:
+        - SOCAT_ENABLE=TRUE
+        - SOCAT_CONNECTION=tcp:192.168.178.46:5000
       volumes:
-        - /tmp/vcom0:/tmp/vcom0
         - ./alertmanager-meshtastic/config.toml:/app/config.toml
       restart: always
 ```
 
+Note: If you set SOCAT_ENABLE to TRUE, the tty option from [meshtastic.connection] in config.toml will be overwritten with /tmp/vcom0 as thats the virtual serial port.
 
 ##  Running on docker example - Hardware Serial (default)
 
@@ -88,14 +91,15 @@ If you plan to use a virtual serial port that is provided with socat (for exampl
 
 ##  Running on docker example - Virtual Serial
 
-If you plan to use a virtual serial port that is provided with socat (for example /tmp/vcom0), you have to use a volume mount instead of the device binding:
+If you plan to use a virtual serial port that is provided with socat you have to use the socat connector in this container or run your alertmanagermeshtastic instance on the terminating linux machine, because the reconnecting is not working if you either mount it as volume or as a device.
 
 ```
     docker run -d --name alertmanagermeshtastic \
-		-v /tmp/vcom0:/tmp/vcom0 \
+		--env SOCAT_ENABLE=TRUE --env SOCAT_CONNECTION=tcp:192.168.178.46:5000 \
 		-v ./alertmanager-meshtastic/config.toml:/app/config.toml \
     -p 9119:9119 apfelwurm/alertmanagermeshtastic:latest
 ```
+Note: If you set SOCAT_ENABLE to TRUE, the tty option from [meshtastic.connection] in config.toml will be overwritten with /tmp/vcom0 as thats the virtual serial port.
 
 ## Contribution
 
