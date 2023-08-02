@@ -24,9 +24,18 @@ USER user
 ENV PATH /home/user/.local/bin:$PATH
 
 COPY --chown=user:user --from=builder /workdir/dist/alertmanagermeshtastic*.whl /app/
+COPY /docker_dist/docker_runscript.sh /app/runscript.sh
+COPY /docker_dist/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-RUN pip install alertmanagermeshtastic*.whl
+RUN pip install alertmanagermeshtastic*.whl && rm -rf alertmanagermeshtastic*.whl
+RUN pip install toml-cli
+RUN apt-get update && apt-get install -y \
+    supervisord  \
+    && rm -rf /var/lib/apt/lists/*
+
+USER root
+WORKDIR /app
 
 EXPOSE 9119
 
-CMD ["alertmanagermeshtastic", "config.toml"]
+CMD ["/app/runscript.sh"]
