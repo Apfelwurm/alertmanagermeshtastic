@@ -34,6 +34,7 @@ RUN chmod +x /app/runscript.sh
 RUN pip install toml-cli
 RUN apt-get update && apt-get install -y \
     supervisor  \
+    socat  \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
