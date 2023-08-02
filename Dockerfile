@@ -2,7 +2,6 @@ FROM python:3.11-slim AS builder
 ARG VERSION=0.01-dev1
 WORKDIR /workdir
 
-# Don't run as root.
 RUN useradd --create-home user
 RUN chown -R user:user /workdir
 USER user
@@ -11,7 +10,6 @@ COPY --chown=user:user . /workdir/
 RUN sed -i "s|0.01-dev1|$VERSION|g" src/alertmanagermeshtastic/__init__.py
 RUN python3 -m pip install --upgrade build && python3 -m build
 
-RUN find
 
 FROM python:3.11-slim
 
@@ -34,7 +32,7 @@ RUN pip install alertmanagermeshtastic*.whl
 USER root
 RUN pip install toml-cli
 RUN apt-get update && apt-get install -y \
-    supervisord  \
+    supervisor  \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
