@@ -11,9 +11,11 @@ if [[ $SOCAT_ENABLE == TRUE ]]; then
     fi
 
     sed -i "s|%%SOCAT_CONNECTION%%|$SOCAT_CONNECTION|g" /app/supervisord_socat.conf
-    cat /app/supervisord_socat.conf >>/etc/supervisor/conf.d/supervisord.conf
+    cp -f /app/supervisord_socat.conf /etc/supervisor/conf.d/supervisord.conf
 
     toml set --toml-path /app/config.toml meshtastic.connection.tty "/tmp/vcom0"
+else
+    cp -f /app/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 fi
 
 /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
