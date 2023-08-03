@@ -101,6 +101,23 @@ If you plan to use a virtual serial port that is provided with socat you have to
 ```
 Note: If you set SOCAT_ENABLE to TRUE, the tty option from [meshtastic.connection] in config.toml will be overwritten with /tmp/vcom0 as thats the virtual serial port.
 
+
+## Metrics for Prometheus
+You cann add this as an exporter to your scrape config, for example:
+
+```
+scrape_configs:
+  - job_name: "alertmanager-meshtastic"
+    scrape_interval: 10s
+    static_configs:
+      - targets: ["alertmanager-meshtastic:9119"]
+```
+
+it will return the metrics
+
+`message_queue_size` (int/gauge)
+`meshtastic_connected` (bool/gauge)
+
 ## Contribution
 
 This is currently a minimal implementation that supports only a single node as a receiver. If you need additional features, you are welcome to open an issue, or even better, submit a pull request. You can also take a look on the opened Issues, where i have opened some for planned features and work on them if you want. I would appreciate any help.
