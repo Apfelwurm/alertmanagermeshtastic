@@ -20,7 +20,7 @@ from werkzeug.routing import Map, Rule
 from werkzeug.wrappers import Request, Response
 
 from .config import HttpConfig
-from .signals import message_received
+from .signals import message_received, queue_size_updated, meshtastic_connected
 from .util import start_thread
 
 
@@ -38,8 +38,25 @@ class Application:
         self._url_map = Map(
             [
                 Rule('/alert', endpoint='alert', methods=['POST']),
+                Rule('/metrics', endpoint='metrics', methods=['GET']),
             ]
         )
+        self.queue_size = 0  # Initialize queue size
+        self.meshtastic_connected = False
+        self.connect_to_signals()
+        # Signals are allowed be sent from here on.
+
+    def connect_to_signals(self) -> None:
+        queue_size_updated.connect(self.update_queue_size)
+        meshtastic_connected.connect(self.update_meshtastic_connected)
+
+    def update_meshtastic_connected(
+        self, meshtastic_connected: bool
+    ) -> None:  # Define a new method
+        self.meshtastic_connected = meshtastic_connected
+
+    def update_queue_size(self, queue_size: int) -> None:  # Define a new method
+        self.queue_size = queue_size
 
     def __call__(self, environ, start_response):
         return self.wsgi_app(environ, start_response)
@@ -70,6 +87,15 @@ class Application:
         except Exception as error:
             logger.error("\t could not queue alerts: %s ", error)
             return Response('Alert fail', status=HTTPStatus.OK)
+
+    def on_metrics(self, request: Request) -> Response:
+        response = '# HELP message_queue_size The size of the message queue.\n'
+        response += '# TYPE message_queue_size gauge\n'
+        response += f'message_queue_size {self.queue_size}\n'
+        response += '# HELP meshtastic_connected shows if meshtastic is connected or not.\n'
+        response += '# TYPE meshtastic_connected gauge\n'
+        response += f'meshtastic_connected {int(self.meshtastic_connected)}'
+        return Response(response, status=HTTPStatus.OK)
 
 
 def _extract_payload(request: Request, keys: set[str]) -> dict[str, str]:

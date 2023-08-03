@@ -19,7 +19,7 @@ from typing import Any, Optional
 from .config import Config
 from .http import start_receive_server
 from .meshtastic import create_announcer
-from .signals import message_received
+from .signals import message_received, queue_size_updated
 
 
 logger = logging.getLogger(__name__)
@@ -58,6 +58,7 @@ class Processor:
             alert["qn"],
         )
         self.message_queue.put((alert))
+        queue_size_updated.send(self.message_queue.qsize())
 
     def announce_message(self, alert: str) -> None:
         """Announce message on MESHTASTIC."""
