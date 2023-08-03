@@ -18,6 +18,8 @@ from .config import MeshtasticConfig, MeshtasticConnection
 import time
 
 from pubsub import pub
+from .signals import meshtastic_connected
+
 
 logger = logging.getLogger(__name__)
 
@@ -48,9 +50,11 @@ class MeshtasticAnnouncer(Announcer):
         self.meshtasticinterface = _create_meshtasticinterface(connection)
 
     def _onconnect(topic=pub.AUTO_TOPIC, interface=None):
+        meshtastic_connected.send(True)
         logger.debug("\t Connected to meshtastic")
 
     def _onconnectionlost(topic=pub.AUTO_TOPIC, interface=None):
+        meshtastic_connected.send(False)
         del topic.meshtasticinterface
         while True:
             try:
