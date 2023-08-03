@@ -72,6 +72,7 @@ class Processor:
             '\t [%s][%d] processing message ', alert["fingerprint"], alert["qn"]
         )
         self.announce_message(alert)
+        queue_size_updated.send(self.message_queue.qsize())
 
     def run(self) -> None:
         """Run the main loop."""
