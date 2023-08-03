@@ -12,6 +12,8 @@ Connect HTTP server and MESHTASTIC interface.
 from __future__ import annotations
 import logging
 from queue import SimpleQueue
+from datetime import datetime, timedelta
+
 from typing import Any, Optional
 
 from .config import Config
@@ -47,6 +49,9 @@ class Processor:
         """Log and announce an incoming message."""
         self.qn = self.qn + 1
         alert["qn"] = self.qn
+        alert["inputtime"] = (datetime.now() + timedelta(hours=2)).strftime(
+            '%Y-%m-%d %H:%M:%S'
+        )
         logger.debug(
             '\t [%s][%d] put in queue',
             alert["fingerprint"],

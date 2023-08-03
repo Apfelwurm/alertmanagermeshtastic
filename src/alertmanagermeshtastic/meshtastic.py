@@ -226,7 +226,14 @@ class MeshtasticAnnouncer(Announcer):
             return [message]
 
     def formatalert(self, alert):
-        message = "Status: " + alert["status"] + "\n"
+        message = (
+            "Status: "
+            + alert["status"]
+            + "\n"
+            + "In: "
+            + alert["inputtime"]
+            + "\n"
+        )
         if "name" in alert["labels"]:
             message += (
                 "Instance: "
