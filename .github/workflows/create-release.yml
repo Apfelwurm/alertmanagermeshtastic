@@ -32,7 +32,7 @@ jobs:
           tag_template: "yyyy.mm.dd.i"
 
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.generate_release_tag.outputs.next_release_tag }}
           name: Release ${{ steps.generate_release_tag.outputs.next_release_tag }}
