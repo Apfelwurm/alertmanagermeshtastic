@@ -38,7 +38,7 @@ jobs:
           name: Release ${{ steps.generate_release_tag.outputs.next_release_tag }}
 
       - name: Repository Dispatch docker build
-        uses: peter-evans/repository-dispatch@v2
+        uses: peter-evans/repository-dispatch@v3
         with:
           event-type: release-created
           client-payload: '{"next_release_tag": "${{ steps.generate_release_tag.outputs.next_release_tag }}"}'
