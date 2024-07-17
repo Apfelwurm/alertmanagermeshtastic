@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Generate release tag
         id: generate_release_tag
-        uses: amitsingh-007/next-release-tag@v4.1.0
+        uses: amitsingh-007/next-release-tag@v6.0.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tag_prefix: ""
