@@ -2,4 +2,4 @@ blinker==1.5
 meshtastic==2.1.11
 python-dateutil==2.8.2
 rtoml==0.9.0
-werkzeug==2.2.3
+werkzeug==3.0.3
