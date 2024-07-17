@@ -22,23 +22,23 @@ jobs:
     name: create-releases
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Generate release tag
         id: generate_release_tag
-        uses: amitsingh-007/next-release-tag@v4.1.0
+        uses: amitsingh-007/next-release-tag@v6.0.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tag_prefix: ""
           tag_template: "yyyy.mm.dd.i"
 
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.generate_release_tag.outputs.next_release_tag }}
           name: Release ${{ steps.generate_release_tag.outputs.next_release_tag }}
 
       - name: Repository Dispatch docker build
-        uses: peter-evans/repository-dispatch@v2
+        uses: peter-evans/repository-dispatch@v3
         with:
           event-type: release-created
           client-payload: '{"next_release_tag": "${{ steps.generate_release_tag.outputs.next_release_tag }}"}'
