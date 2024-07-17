@@ -5,7 +5,7 @@
     "python.formatting.provider": "none",
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-        "source.sortImports": true,
-        "source.fixAll": true
+        "source.sortImports": "explicit",
+        "source.fixAll": "explicit"
     },
 }
