@@ -26,7 +26,7 @@ jobs:
         with:
           submodules: recursive
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2.2.0
+        uses: docker/setup-qemu-action@v3.1.0
       - name: Build Linux Image
         uses: docker/build-push-action@v4.1.1
         with:
