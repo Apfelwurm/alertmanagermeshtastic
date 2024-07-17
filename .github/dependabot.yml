@@ -2,7 +2,8 @@ version: 2
 updates:
   # Enable version updates for Docker
   - package-ecosystem: "docker"
-    directory: "/docker"
+    directory: "/"
+    open-pull-requests-limit: 20
     # Check for updates once a week
     schedule:
       interval: "daily"
@@ -11,13 +12,15 @@ updates:
   # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
+    open-pull-requests-limit: 20
     schedule:
       interval: "daily"
       time: "11:00"
 
   # Enable version updates for Python
   - package-ecosystem: "pip"
-    directory: "/python"
+    directory: "/"
+    open-pull-requests-limit: 20
     schedule:
       interval: "daily"
       time: "11:00"
