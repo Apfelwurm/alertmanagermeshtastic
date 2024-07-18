@@ -1,5 +1,9 @@
 log_level = "debug"
 
+[general]
+inputtimeshift = 2      # this time in hours will be added to the "in" time of the message that gets sent to the client
+statustimeshift = 2     # this time in hours will be added to the "status" time of the message (startsAt/endsAt) that gets sent to the client
+
 [http]
 host = "127.0.0.1"
 port = 9119

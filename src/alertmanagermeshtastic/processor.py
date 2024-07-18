@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 class Processor:
     def __init__(self, config: Config) -> None:
         self.config = config
-        self.announcer = create_announcer(config.meshtastic)
+        self.announcer = create_announcer(config.meshtastic, config.general)
         self.enabled_channel_names: set[str] = set()
         self.message_queue: SimpleQueue = SimpleQueue()
         self.qn = 0
@@ -49,12 +49,14 @@ class Processor:
         """Log and announce an incoming message."""
         self.qn = self.qn + 1
         alert["qn"] = self.qn
-        alert["inputtime"] = (datetime.now() + timedelta(hours=2)).strftime(
-            '%Y-%m-%d %H:%M:%S'
-        )
+        alert["inputtime"] = (
+            datetime.now() + timedelta(hours=self.config.general.inputtimeshift)
+        ).strftime('%Y-%m-%d %H:%M:%S')
         logger.debug(
-            '\t [%s][%d] put in queue',
+            '\t [%s][%s][%d][%d] put in queue',
             alert["fingerprint"],
+            alert["inputtime"],
+            self.config.general.inputtimeshift,
             alert["qn"],
         )
         self.message_queue.put((alert))

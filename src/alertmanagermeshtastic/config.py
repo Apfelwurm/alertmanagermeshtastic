@@ -22,6 +22,8 @@ DEFAULT_HTTP_PORT = 9119
 DEFAULT_MESHTASTIC_NODEID = 123456789
 DEFAULT_MESHTASTIC_MAXSENDINGATTEMPTS = 5
 DEFAULT_MESHTASTIC_TIMEOUT = 60
+DEFAULT_GENERAL_INPUTTIMESHIFT = 2
+DEFAULT_GENERAL_STATUSTIMESHIFT = 2
 
 
 class ConfigurationError(Exception):
@@ -31,8 +33,17 @@ class ConfigurationError(Exception):
 @dataclass(frozen=True)
 class Config:
     log_level: str
+    general: GeneralConfig
     http: HttpConfig
     meshtastic: MeshtasticConfig
+
+
+@dataclass(frozen=True)
+class GeneralConfig:
+    """The General configuration."""
+
+    inputtimeshift: int = DEFAULT_GENERAL_INPUTTIMESHIFT
+    statustimeshift: int = DEFAULT_GENERAL_STATUSTIMESHIFT
 
 
 @dataclass(frozen=True)
@@ -65,11 +76,13 @@ def load_config(path: Path) -> Config:
     data = rtoml.load(path)
 
     log_level = _get_log_level(data)
+    general_config = _get_general_config(data)
     http_config = _get_http_config(data)
     meshtastic_config = _get_meshtastic_config(data)
 
     return Config(
         log_level=log_level,
+        general=general_config,
         http=http_config,
         meshtastic=meshtastic_config,
     )
@@ -82,6 +95,21 @@ def _get_log_level(data: dict[str, Any]) -> str:
         raise ConfigurationError(f'Unknown log level "{level}"')
 
     return level
+
+
+def _get_general_config(data: dict[str, Any]) -> GeneralConfig:
+    data_general = data.get('general', {})
+
+    inputtimeshift = int(
+        data_general.get('inputtimeshift', DEFAULT_GENERAL_INPUTTIMESHIFT)
+    )
+    statustimeshift = int(
+        data_general.get('statustimeshift', DEFAULT_GENERAL_STATUSTIMESHIFT)
+    )
+
+    return GeneralConfig(
+        inputtimeshift=inputtimeshift, statustimeshift=statustimeshift
+    )
 
 
 def _get_http_config(data: dict[str, Any]) -> HttpConfig:

@@ -14,7 +14,8 @@ import logging
 import meshtastic, meshtastic.serial_interface
 
 from dateutil import parser
-from .config import MeshtasticConfig, MeshtasticConnection
+from datetime import timedelta
+from .config import MeshtasticConfig, MeshtasticConnection, GeneralConfig
 import time
 
 from pubsub import pub
@@ -44,8 +45,10 @@ class MeshtasticAnnouncer(Announcer):
     def __init__(
         self,
         connection: MeshtasticConnection,
+        generalconfig: GeneralConfig,
     ) -> None:
         self.connection = connection
+        self.generalconfig = generalconfig
 
         self.meshtasticinterface = _create_meshtasticinterface(connection)
 
@@ -269,15 +272,15 @@ class MeshtasticAnnouncer(Announcer):
         #         "Description: " + alert['annotations']['description'] + "\n"
         #     )
         if alert["status"] == "resolved":
-            correctdate = parser.parse(alert["endsAt"]).strftime(
-                "%Y-%m-%d %H:%M:%S"
+            correctdate = parser.parse(alert["endsAt"]) + timedelta(
+                hours=self.generalconfig.statustimeshift
             )
-            message += "Resolved: " + correctdate
+            message += "Resolved: " + correctdate.strftime("%Y-%m-%d %H:%M:%S")
         elif alert["status"] == "firing":
-            correctdate = parser.parse(alert["startsAt"]).strftime(
-                "%Y-%m-%d %H:%M:%S"
+            correctdate = parser.parse(alert["startsAt"]) + timedelta(
+                hours=self.generalconfig.statustimeshift
             )
-            message += "Started: " + correctdate
+            message += "Started: " + correctdate.strftime("%Y-%m-%d %H:%M:%S")
         return message
 
     def shutdown(self) -> None:
@@ -311,7 +314,9 @@ class DummyAnnouncer(Announcer):
         logger.debug('%s> %s', alert)
 
 
-def create_announcer(config: MeshtasticConfig) -> Announcer:
+def create_announcer(
+    config: MeshtasticConfig, generalconfig: GeneralConfig
+) -> Announcer:
     """Create an announcer."""
     if config.connection is None:
         logger.info(
@@ -321,4 +326,5 @@ def create_announcer(config: MeshtasticConfig) -> Announcer:
 
     return MeshtasticAnnouncer(
         config.connection,
+        generalconfig,
     )
