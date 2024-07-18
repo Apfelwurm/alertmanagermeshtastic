@@ -146,63 +146,57 @@ class MeshtasticAnnouncer(Announcer):
                             time.sleep(2)
 
                         self.meshtasticinterface.sendText(
-                            str(alert["qn"])
+                            text=str(alert["qn"])
                             + ":"
                             + str(index + 1)
                             + "/"
                             + str(total_chunks)
                             + "\n"
                             + chunk,
-                            self.connection.nodeid,
-                            True,
-                            False,
-                            self.meshtasticinterface.getNode(
+                            destinationId=self.connection.nodeid,
+                            wantAck=True,
+                            wantResponse=False,
+                            onResponse=self.meshtasticinterface.getNode(
                                 self.connection.nodeid, False
                             ).onAckNak,
                         )
-                        self.meshtasticinterface.waitForAckNak()
+
+                        ack = False
+
+                        # Check acknowledgment in while until Nak, Ack or ImplAck is set or the timeout is received
                         start_time = time.time()
-                        while True:
-                            # Check if value is True
+                        while (
+                            time.time() - start_time < self.connection.timeout
+                        ):
                             if (
                                 self.meshtasticinterface._acknowledgment.receivedAck
+                                or self.meshtasticinterface._acknowledgment.receivedImplAck
                             ):
-                                logger.debug(
-                                    "\t [%s][%d][%d] got ack received from meshtastic on attempt %d",
-                                    alert["fingerprint"],
-                                    alert["qn"],
-                                    index,
-                                    attempt,
-                                )
+                                ack = True
                                 break
 
-                            # Check if timeout has been reached
                             if (
-                                time.time() - start_time
-                                > self.connection.timeout
+                                self.meshtasticinterface._acknowledgment.receivedNak
                             ):
-                                logger.debug(
-                                    "\t [%s][%d][%d] Timeout reached on attempt %d!",
-                                    alert["fingerprint"],
-                                    alert["qn"],
-                                    index,
-                                    attempt,
-                                )
-                                raise Exception(
-                                    "No ack received from meshtastic within the timeout"
-                                )
                                 break
+                            time.sleep(0.5)
 
-                            # Sleep for a short period to avoid a busy wait
-                            time.sleep(0.1)
+                        # Reset acknowledgement after checking it ourselves
+                        self.meshtasticinterface._acknowledgment.reset()
 
-                        logger.debug(
-                            "\t [%s][%d][%d] success on attempt %d  ",
-                            alert["fingerprint"],
-                            alert["qn"],
-                            index,
-                            attempt,
-                        )
+                        if ack:
+                            logger.debug(
+                                "\t [%s][%d][%d] got ack received from meshtastic on attempt %d",
+                                alert["fingerprint"],
+                                alert["qn"],
+                                index,
+                                attempt,
+                            )
+                        else:
+                            raise Exception(
+                                "No ack received from meshtastic within the timeout"
+                            )
+
                         break
                     except Exception as e:
                         logger.error(
