@@ -49,18 +49,35 @@ class MeshtasticAnnouncer(Announcer):
 
         self.meshtasticinterface = _create_meshtasticinterface(connection)
 
-    def _onconnect(topic=pub.AUTO_TOPIC, interface=None):
+    def _onconnect(self, topic=pub.AUTO_TOPIC, interface=None):
         meshtastic_connected.send(True)
+        pub.subscribe(self._onconnectionlost, "meshtastic.connection.lost")
         logger.debug("\t Connected to meshtastic")
 
-    def _onconnectionlost(topic=pub.AUTO_TOPIC, interface=None):
+    def _onconnectionlost(self, topic=pub.AUTO_TOPIC, interface=None):
         meshtastic_connected.send(False)
-        del topic.meshtasticinterface
+        logger.error("Connection Lost! try deleting and reconnecting interface")
+        pub.unsubscribe(self._onconnectionlost, "meshtastic.connection.lost")
+
+        if hasattr(self, 'meshtasticinterface'):
+            try:
+                logger.error("Closing interface...")
+                self.meshtasticinterface.close()
+                logger.error("Interface Closed!")
+            except Exception as e:
+                logger.error("Failed to close meshtastic interface: %s", e)
+            finally:
+                logger.error("Deleting Interface...")
+                del self.meshtasticinterface
+                logger.error("Interface deleted!")
+
         while True:
             try:
-                topic.meshtasticinterface = _create_meshtasticinterface(
-                    topic.connection
+                logger.error("Recreating interface...")
+                self.meshtasticinterface = _create_meshtasticinterface(
+                    self.connection
                 )
+                logger.error("interface recreated!")
                 break
             except Exception as e:
                 logger.error(
@@ -78,7 +95,6 @@ class MeshtasticAnnouncer(Announcer):
             self.connection.maxsendingattempts,
             self.connection.timeout,
         )
-        pub.subscribe(self._onconnectionlost, "meshtastic.connection.lost")
         pub.subscribe(self._onconnect, "meshtastic.connection.established")
         # start_thread(self.meshtasticinterface.start)
 
