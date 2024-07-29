@@ -11,7 +11,7 @@ Connect HTTP server and MESHTASTIC interface.
 
 from __future__ import annotations
 import logging
-from queue import SimpleQueue
+from queue import SimpleQueue, Empty
 from datetime import datetime, timedelta
 
 from typing import Any, Optional
@@ -19,7 +19,7 @@ from typing import Any, Optional
 from .config import Config
 from .http import start_receive_server
 from .meshtastic import create_announcer
-from .signals import message_received, queue_size_updated
+from .signals import message_received, queue_size_updated, clear_queue_issued
 
 
 logger = logging.getLogger(__name__)
@@ -39,6 +39,28 @@ class Processor:
 
     def connect_to_signals(self) -> None:
         message_received.connect(self.handle_message)
+        clear_queue_issued.connect(self.handle_clear_queue)
+
+    def handle_clear_queue(self, sender):
+        logger.debug('\t clearing queue.... ')
+        while not self.message_queue.empty():
+            try:
+                self.message_queue.get_nowait()
+            except Empty:
+                break
+
+        mock_alert = {
+            "status": "quecleared",
+            "fingerprint": "quecleared",
+            "labels": {"alertname": "quecleared", "severity": "info"},
+            "annotations": {
+                "summary": "This is a alert for clearing the queue."
+            },
+        }
+        self.handle_message(alert=mock_alert, sender=None)
+        queue_size_updated.send(self.message_queue.qsize())
+
+        logger.debug('\t clearing queue finished. ')
 
     def handle_message(
         self,

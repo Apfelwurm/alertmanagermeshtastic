@@ -19,6 +19,7 @@ import rtoml
 
 DEFAULT_HTTP_HOST = '127.0.0.1'
 DEFAULT_HTTP_PORT = 9119
+DEFAULT_HTTP_CLEARSECRET = 'your_secret_key'
 DEFAULT_MESHTASTIC_NODEID = 123456789
 DEFAULT_MESHTASTIC_MAXSENDINGATTEMPTS = 5
 DEFAULT_MESHTASTIC_TIMEOUT = 60
@@ -52,6 +53,7 @@ class HttpConfig:
 
     host: str
     port: int
+    clearsecret: str
 
 
 @dataclass(frozen=True)
@@ -117,8 +119,9 @@ def _get_http_config(data: dict[str, Any]) -> HttpConfig:
 
     host = data_http.get('host', DEFAULT_HTTP_HOST)
     port = int(data_http.get('port', DEFAULT_HTTP_PORT))
+    clearsecret = data_http.get('clearsecret', DEFAULT_HTTP_CLEARSECRET)
 
-    return HttpConfig(host, port)
+    return HttpConfig(host, port, clearsecret)
 
 
 def _get_meshtastic_config(data: dict[str, Any]) -> MeshtasticConfig:

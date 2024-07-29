@@ -20,28 +20,33 @@ from werkzeug.routing import Map, Rule
 from werkzeug.wrappers import Request, Response
 
 from .config import HttpConfig
-from .signals import message_received, queue_size_updated, meshtastic_connected
+from .signals import (
+    message_received,
+    queue_size_updated,
+    meshtastic_connected,
+    clear_queue_issued,
+)
 from .util import start_thread
 
 
 logger = logging.getLogger(__name__)
 
 
-def create_app() -> Application:
-    return Application()
+def create_app(clearsecret) -> Application:
+    return Application(clearsecret=clearsecret)
 
 
 class Application:
-    def __init__(
-        self,
-    ) -> None:
+    def __init__(self, clearsecret) -> None:
         self._url_map = Map(
             [
                 Rule('/alert', endpoint='alert', methods=['POST']),
                 Rule('/metrics', endpoint='metrics', methods=['GET']),
+                Rule('/clear_queue', endpoint='clearqueue', methods=['GET']),
             ]
         )
         self.queue_size = 0  # Initialize queue size
+        self.clearsecret = clearsecret
         self.meshtastic_connected = False
         self.connect_to_signals()
         # Signals are allowed be sent from here on.
@@ -88,6 +93,21 @@ class Application:
             logger.error("\t could not queue alerts: %s ", error)
             return Response('Alert fail', status=HTTPStatus.OK)
 
+    def on_clearqueue(self, request):
+        try:
+            secret = request.args.get('secret')
+            if secret != self.clearsecret:
+                return Response('Forbidden', status=HTTPStatus.FORBIDDEN)
+
+            clear_queue_issued.send()
+
+            return Response('Queue cleared', status=HTTPStatus.OK)
+        except Exception as error:
+            logger.error("\t could clear alert queue: %s ", error)
+            return Response(
+                'clearing queue faild', status=HTTPStatus.INTERNAL_SERVER_ERROR
+            )
+
     def on_metrics(self, request: Request) -> Response:
         response = '# HELP message_queue_size The size of the message queue.\n'
         response += '# TYPE message_queue_size gauge\n'
@@ -123,7 +143,7 @@ ServerHandler.server_software = 'alertmanagermeshtastic'
 
 def create_server(config: HttpConfig) -> WSGIServer:
     """Create the HTTP server."""
-    app = create_app()
+    app = create_app(config.clearsecret)
 
     return make_server(config.host, config.port, app)
 

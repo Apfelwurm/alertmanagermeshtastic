@@ -39,6 +39,7 @@ statustimeshift = 2     # this time in hours will be added to the "status" time 
 [http]
 host = "0.0.0.0"
 port = 9119
+clearsecret = "your_secret_key"
 
 [meshtastic.connection]
 tty = "/tmp/vcom0"
