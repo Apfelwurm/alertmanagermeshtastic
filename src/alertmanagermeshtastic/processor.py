@@ -14,6 +14,7 @@ import logging
 from collections import deque
 from datetime import datetime, timedelta
 import json
+import time
 
 from typing import Any, Optional
 
@@ -118,6 +119,7 @@ class Processor:
                     '\t Messages in queue: %d', len(self.message_queue)
                 )
                 self.queue_empty_logged = True
+            time.sleep(5)
         else:
             self.queue_empty_logged = False
             logger.debug('\t Messages in queue: %d', len(self.message_queue))
