@@ -13,6 +13,7 @@ from __future__ import annotations
 import logging
 from queue import SimpleQueue, Empty
 from datetime import datetime, timedelta
+import json
 
 from typing import Any, Optional
 
@@ -43,11 +44,17 @@ class Processor:
 
     def handle_clear_queue(self, sender):
         logger.debug('\t clearing queue.... ')
+        queue_entries = []
+
         while not self.message_queue.empty():
             try:
-                self.message_queue.get_nowait()
+                entry = self.message_queue.get_nowait()
+                queue_entries.append(entry)
             except Empty:
                 break
+
+        with open('/tmp/queueclear', 'w') as f:
+            json.dump(queue_entries, f)
 
         mock_alert = {
             "status": "quecleared",
