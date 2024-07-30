@@ -31,7 +31,7 @@ class Announcer:
     def start(self) -> None:
         """Start the announcer."""
 
-    def announce(self, alert: str) -> None:
+    def announce(self, alert: dict) -> None:
         """Announce a message."""
         raise NotImplementedError()
 
@@ -101,7 +101,7 @@ class MeshtasticAnnouncer(Announcer):
         pub.subscribe(self._onconnect, "meshtastic.connection.established")
         # start_thread(self.meshtasticinterface.start)
 
-    def announce(self, alert: str) -> None:
+    def announce(self, alert: dict) -> None:
         """Announce a message."""
         try:
             try:
@@ -242,7 +242,7 @@ class MeshtasticAnnouncer(Announcer):
             )
             return [message]
 
-    def formatalert(self, alert):
+    def formatalert(self, alert: dict):
         message = (
             "Status: "
             + alert["status"]
@@ -309,7 +309,7 @@ def _create_meshtasticinterface(
 class DummyAnnouncer(Announcer):
     """An announcer that writes messages to STDOUT."""
 
-    def announce(self, alert: str) -> None:
+    def announce(self, alert: dict) -> None:
         """Announce a message."""
         logger.debug('%s> %s', alert)
 
