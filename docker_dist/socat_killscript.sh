@@ -15,6 +15,14 @@ echo "Pinging IP address: $IP"
 # Initialize failure counter
 fail_count=0
 
+# Function to kill all socat processes
+kill_socat_processes() {
+  socat_pids=$(pidof socat)
+  if [ -n "$socat_pids" ]; then
+    echo "$socat_pids" | xargs kill -9
+  fi
+}
+
 # Ping the IP address
 while true; do
   if ping -c 1 $IP &> /dev/null; then
@@ -28,7 +36,7 @@ while true; do
   # Check if ping failed 5 times in a row
   if [ $fail_count -ge 5 ]; then
     echo "Ping failed 5 times in a row. Killing all socat instances."
-    pkill socat
+    kill_socat_processes
     fail_count=0  # Reset failure counter after killing socat
   fi
 
