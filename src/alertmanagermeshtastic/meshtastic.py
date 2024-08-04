@@ -301,7 +301,18 @@ def _create_meshtasticinterface(
 ) -> Meshtasticinterface:
     """Create a Interface."""
 
-    meshtasticinterface = Meshtasticinterface(connection.tty)
+    while True:
+        try:
+            logger.error("Creating interface...")
+            meshtasticinterface = Meshtasticinterface(connection.tty)
+            logger.error("interface recreated!")
+            break
+        except Exception as e:
+            logger.error(
+                "\t Connnection to meshtastic failed with error: %s , retry in 2 seconds",
+                e,
+            )
+            time.sleep(2)
 
     return meshtasticinterface
 
