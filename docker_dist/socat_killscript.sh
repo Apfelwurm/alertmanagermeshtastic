@@ -21,7 +21,7 @@ kill_socat_processes() {
   echo "found pids $socat_pids"
   if [ -n "$socat_pids" ]; then
     echo "kill pids $socat_pids"
-    echo "$socat_pids" | xargs kill -9
+    kill -9 $socat_pids
   else
     echo "No socat processes found to kill."
   fi
