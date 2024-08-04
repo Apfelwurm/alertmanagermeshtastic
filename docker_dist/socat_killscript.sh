@@ -18,8 +18,9 @@ fail_count=0
 # Function to kill all socat processes
 kill_socat_processes() {
   socat_pids=$(pidof socat)
-  echo "$socat_pids"
+  echo "found pids $socat_pids"
   if [ -n "$socat_pids" ]; then
+    echo "kill pids $socat_pids"
     echo "$socat_pids" | xargs kill -9
   else
     echo "No socat processes found to kill."
@@ -29,10 +30,9 @@ kill_socat_processes() {
 # Ping the IP address
 while true; do
   if ping -c 1 $IP &> /dev/null; then
-    echo "Ping to $IP successful"
     fail_count=0  # Reset failure counter on successful ping
   else
-    echo "Ping to $IP failed"
+    echo "Error: Ping to $IP failed"
     ((fail_count++))
   fi
 
