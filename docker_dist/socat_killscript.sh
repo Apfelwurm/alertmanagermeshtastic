@@ -18,8 +18,11 @@ fail_count=0
 # Function to kill all socat processes
 kill_socat_processes() {
   socat_pids=$(pidof socat)
+  echo "$socat_pids"
   if [ -n "$socat_pids" ]; then
     echo "$socat_pids" | xargs kill -9
+  else
+    echo "No socat processes found to kill."
   fi
 }
 

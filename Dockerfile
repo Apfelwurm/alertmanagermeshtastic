@@ -37,6 +37,7 @@ RUN pip install toml-cli
 RUN apt-get update && apt-get install -y \
     supervisor  \
     socat  \
+    iputils-ping \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
