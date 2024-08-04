@@ -29,9 +29,10 @@ RUN pip install alertmanagermeshtastic*.whl
 USER root
 COPY /docker_dist/docker_runscript.sh /app/runscript.sh
 COPY /docker_dist/socat_runscript.sh /app/socat_runscript.sh
+COPY /docker_dist/socat_killscript.sh /app/socat_killscript.sh
 COPY /docker_dist/supervisord.conf /app/supervisord.conf
 COPY /docker_dist/supervisord_socat.conf /app/supervisord_socat.conf
-RUN chmod +x /app/runscript.sh
+RUN chmod +x /app/*.sh
 RUN pip install toml-cli
 RUN apt-get update && apt-get install -y \
     supervisor  \
