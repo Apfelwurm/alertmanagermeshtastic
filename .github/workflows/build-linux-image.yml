@@ -30,7 +30,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.7.1
       - name: Build Linux Image (Dev)
-        if: ${{ github.ref == 'refs/heads/dev' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
         uses: docker/build-push-action@v6.9.0
         with:
           context: .
@@ -42,7 +42,7 @@ jobs:
             VERSION=dev
           no-cache: true
       - name: Build Linux Image (Release)
-        if: ${{ github.ref != 'refs/heads/dev' }}
+        if: ${{ github.event_name == 'repository_dispatch' }}
         uses: docker/build-push-action@v6.9.0
         with:
           context: .
@@ -62,10 +62,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Push to Docker HUB (Dev)
-        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/dev' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
         run: docker push apfelwurm/alertmanagermeshtastic:dev
       - name: Push to Docker HUB (Release)
-        if: ${{ github.event_name != 'pull_request' && github.ref != 'refs/heads/dev' }}
+        if: ${{ github.event_name == 'repository_dispatch' }}
         run: |
           docker push apfelwurm/alertmanagermeshtastic:latest
           docker push apfelwurm/alertmanagermeshtastic:${{ github.event.client_payload.next_release_tag }}
