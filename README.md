@@ -6,7 +6,7 @@
 [![pypi](https://img.shields.io/badge/pypi-package-important.svg?logo=Pypi)](https://pypi.org/project/alertmanagermeshtastic)
 
 
-This little Adapter receives alertmanager webhooks and sends the notifications via a over serial attached Meshtastic device to the specified nodeID.
+This little Adapter receives alertmanager webhooks and sends the notifications via a over serial attached Meshtastic device to the specified nodeID(s).
 
 > **Warning**
 > Caution: The Tests that are provided for the code in this repository are not currently updated! Also this is a quickly hacked together peace of software, that has not built any security in it at the moment. If you have the skill and the time to contribute in any way, take a look at the [Contribution section](#contribution)
@@ -43,10 +43,22 @@ clearsecret = "your_secret_key"
 
 [meshtastic.connection]
 tty = "/tmp/vcom0"
+# Single node (backward compatible):
 nodeid = 631724152
+# OR multiple nodes (broadcasts to all specified nodes):
+# nodeids = [631724152, 123456789, 987654321]
 maxsendingattempts = 30
 timeout = 60
 ```
+
+### Multiple Node IDs Support
+
+The system now supports sending alerts to multiple Meshtastic nodes. You can configure this in two ways:
+
+- **Single node (backward compatible)**: Use `nodeid = 123456789`
+- **Multiple nodes**: Use `nodeids = [123456789, 987654321, 555666777]`
+
+When multiple nodeids are configured, the same alert will be broadcast to all specified nodes.
 
 
 ##  docker compose service example - Hardware Serial (default)
