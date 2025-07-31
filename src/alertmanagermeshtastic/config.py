@@ -61,9 +61,14 @@ class MeshtasticConnection:
     """An MESHTASTIC connection."""
 
     tty: str
-    nodeid: int = DEFAULT_MESHTASTIC_NODEID
+    nodeids: list[int] = None
     maxsendingattempts: int = DEFAULT_MESHTASTIC_MAXSENDINGATTEMPTS
     timeout: int = DEFAULT_MESHTASTIC_TIMEOUT
+    
+    def __post_init__(self):
+        # Ensure nodeids is always a list, default to single node if not provided
+        if self.nodeids is None:
+            object.__setattr__(self, 'nodeids', [DEFAULT_MESHTASTIC_NODEID])
 
 
 @dataclass(frozen=True)
@@ -147,11 +152,26 @@ def _get_meshtastic_connection(
     if not tty:
         return None
 
-    nodeid = int(data_connection.get('nodeid', DEFAULT_MESHTASTIC_NODEID))
+    # Handle both single nodeid and multiple nodeids for backward compatibility
+    nodeids = None
+    if 'nodeids' in data_connection:
+        # Multiple nodeids provided as list
+        nodeids_raw = data_connection.get('nodeids')
+        if isinstance(nodeids_raw, list):
+            nodeids = [int(nid) for nid in nodeids_raw]
+        else:
+            # Single value in nodeids field
+            nodeids = [int(nodeids_raw)]
+    elif 'nodeid' in data_connection:
+        # Backward compatibility: single nodeid
+        nodeids = [int(data_connection.get('nodeid'))]
+    else:
+        # No nodeids specified, use default
+        nodeids = [DEFAULT_MESHTASTIC_NODEID]
 
     return MeshtasticConnection(
         tty=tty,
-        nodeid=nodeid,
+        nodeids=nodeids,
         maxsendingattempts=maxsendingattempts,
         timeout=timeout,
     )

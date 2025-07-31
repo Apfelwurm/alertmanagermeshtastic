@@ -91,10 +91,11 @@ class MeshtasticAnnouncer(Announcer):
 
     def start(self) -> None:
         """Connect to the connection, in a separate thread."""
+        nodeids_str = ", ".join(str(nid) for nid in self.connection.nodeids)
         logger.info(
-            '\t Connecting to MESHTASTIC connection %s, the node is %d and messages will be sent %d times with timeout %d before failing',
+            '\t Connecting to MESHTASTIC connection %s, the nodes are [%s] and messages will be sent %d times with timeout %d before failing',
             self.connection.tty,
-            self.connection.nodeid,
+            nodeids_str,
             self.connection.maxsendingattempts,
             self.connection.timeout,
         )
@@ -135,83 +136,95 @@ class MeshtasticAnnouncer(Announcer):
                 )
                 raise
 
-            for index, chunk in enumerate(chunks):
-                for attempt in range(self.connection.maxsendingattempts):
-                    logger.debug(
-                        "\t [%s][%d][%d] sending attempt %d ",
-                        alert["fingerprint"],
-                        alert["qn"],
-                        index,
-                        attempt,
-                    )
-                    try:
-                        while not hasattr(self, 'meshtasticinterface'):
-                            time.sleep(2)
-
-                        self.meshtasticinterface.sendText(
-                            text=str(alert["qn"])
-                            + ":"
-                            + str(index + 1)
-                            + "/"
-                            + str(total_chunks)
-                            + "\n"
-                            + chunk,
-                            destinationId=self.connection.nodeid,
-                            wantAck=True,
-                            wantResponse=False,
-                            onResponse=self.meshtasticinterface.getNode(
-                                self.connection.nodeid, False
-                            ).onAckNak,
-                        )
-
-                        ack = False
-
-                        # Check acknowledgment in while until Nak, Ack or ImplAck is set or the timeout is received
-                        start_time = time.time()
-                        while (
-                            time.time() - start_time < self.connection.timeout
-                        ):
-                            if (
-                                self.meshtasticinterface._acknowledgment.receivedAck
-                                or self.meshtasticinterface._acknowledgment.receivedImplAck
-                            ):
-                                ack = True
-                                break
-
-                            if (
-                                self.meshtasticinterface._acknowledgment.receivedNak
-                            ):
-                                break
-                            time.sleep(0.5)
-
-                        # Reset acknowledgement after checking it ourselves
-                        self.meshtasticinterface._acknowledgment.reset()
-
-                        if ack:
-                            logger.debug(
-                                "\t [%s][%d][%d] got ack received from meshtastic on attempt %d",
-                                alert["fingerprint"],
-                                alert["qn"],
-                                index,
-                                attempt,
-                            )
-                        else:
-                            raise Exception(
-                                "No ack received from meshtastic within the timeout"
-                            )
-
-                        break
-                    except Exception as e:
-                        logger.error(
-                            "\t [%s][%d][%d] failed on attempt %d with error: %s",
+            # Send to all configured nodeids
+            for nodeid in self.connection.nodeids:
+                logger.debug(
+                    "\t [%s][%d] sending to nodeid %d",
+                    alert["fingerprint"],
+                    alert["qn"],
+                    nodeid,
+                )
+                
+                for index, chunk in enumerate(chunks):
+                    for attempt in range(self.connection.maxsendingattempts):
+                        logger.debug(
+                            "\t [%s][%d][%d][%d] sending attempt %d ",
                             alert["fingerprint"],
                             alert["qn"],
+                            nodeid,
                             index,
                             attempt,
-                            e,
                         )
-                        if attempt == self.connection.maxsendingattempts - 1:
-                            raise
+                        try:
+                            while not hasattr(self, 'meshtasticinterface'):
+                                time.sleep(2)
+
+                            self.meshtasticinterface.sendText(
+                                text=str(alert["qn"])
+                                + ":"
+                                + str(index + 1)
+                                + "/"
+                                + str(total_chunks)
+                                + "\n"
+                                + chunk,
+                                destinationId=nodeid,
+                                wantAck=True,
+                                wantResponse=False,
+                                onResponse=self.meshtasticinterface.getNode(
+                                    nodeid, False
+                                ).onAckNak,
+                            )
+
+                            ack = False
+
+                            # Check acknowledgment in while until Nak, Ack or ImplAck is set or the timeout is received
+                            start_time = time.time()
+                            while (
+                                time.time() - start_time < self.connection.timeout
+                            ):
+                                if (
+                                    self.meshtasticinterface._acknowledgment.receivedAck
+                                    or self.meshtasticinterface._acknowledgment.receivedImplAck
+                                ):
+                                    ack = True
+                                    break
+
+                                if (
+                                    self.meshtasticinterface._acknowledgment.receivedNak
+                                ):
+                                    break
+                                time.sleep(0.5)
+
+                            # Reset acknowledgement after checking it ourselves
+                            self.meshtasticinterface._acknowledgment.reset()
+
+                            if ack:
+                                logger.debug(
+                                    "\t [%s][%d][%d][%d] got ack received from meshtastic on attempt %d",
+                                    alert["fingerprint"],
+                                    alert["qn"],
+                                    nodeid,
+                                    index,
+                                    attempt,
+                                )
+                            else:
+                                raise Exception(
+                                    "No ack received from meshtastic within the timeout"
+                                )
+
+                            break
+                        except Exception as e:
+                            logger.error(
+                                "\t [%s][%d][%d][%d] failed on attempt %d with error: %s",
+                                alert["fingerprint"],
+                                alert["qn"],
+                                nodeid,
+                                index,
+                                attempt,
+                                e,
+                            )
+                            if attempt == self.connection.maxsendingattempts - 1:
+                                raise
 
         except Exception as e:
             logger.error(

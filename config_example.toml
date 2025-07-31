@@ -11,6 +11,9 @@ clearsecret = "your_secret_key"
 
 [meshtastic.connection]
 tty = "/tmp/vcom0"
+# Single node (backward compatible):
 nodeid = 631724152
+# OR multiple nodes (new format):
+# nodeids = [631724152, 123456789, 987654321]
 maxsendingattempts = 30
 timeout = 60
