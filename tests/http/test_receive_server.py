@@ -29,14 +29,20 @@ def restricted_server(make_server):
 
 def test_receive_server_with_valid_request(server):
     data = {
-        'channel': '#party',
-        'text': 'Limbo!',
+        'alerts': [
+            {
+                'status': 'firing',
+                'labels': {'alertname': 'test_alert'},
+                'annotations': {'summary': 'Test alert'},
+                'fingerprint': 'test123'
+            }
+        ]
     }
     request = build_request(server, data)
 
     response = urlopen(request)
 
-    assert response.code == 202
+    assert response.code == 200
 
 
 def test_receive_server_without_channel(server):
@@ -68,8 +74,14 @@ def test_receive_server_without_text(server):
 
 def test_restricted_access_without_api_token(restricted_server):
     data = {
-        'channel': '#internal',
-        'text': 'I lost my wallet.',
+        'alerts': [
+            {
+                'status': 'firing',
+                'labels': {'alertname': 'test_alert'},
+                'annotations': {'summary': 'Test alert'},
+                'fingerprint': 'test123'
+            }
+        ]
     }
     request = build_request(restricted_server, data, api_token=None)
 
@@ -81,8 +93,14 @@ def test_restricted_access_without_api_token(restricted_server):
 
 def test_restricted_access_with_invalid_api_token(restricted_server):
     data = {
-        'channel': '#internal',
-        'text': 'I can has access?!',
+        'alerts': [
+            {
+                'status': 'firing',
+                'labels': {'alertname': 'test_alert'},
+                'annotations': {'summary': 'Test alert'},
+                'fingerprint': 'test123'
+            }
+        ]
     }
     request = build_request(
         restricted_server,
@@ -98,8 +116,14 @@ def test_restricted_access_with_invalid_api_token(restricted_server):
 
 def test_restricted_access_with_valid_api_token(restricted_server):
     data = {
-        'channel': '#internal',
-        'text': 'Welcome to the club!',
+        'alerts': [
+            {
+                'status': 'firing',
+                'labels': {'alertname': 'test_alert'},
+                'annotations': {'summary': 'Test alert'},
+                'fingerprint': 'test123'
+            }
+        ]
     }
     request = build_request(
         restricted_server,
@@ -109,7 +133,7 @@ def test_restricted_access_with_valid_api_token(restricted_server):
 
     response = urlopen(request)
 
-    assert response.code == 202
+    assert response.code == 200
 
 
 # unknown URL path
@@ -157,4 +181,4 @@ def build_request(server, data, *, api_token=None):
 
 def get_server_url(server):
     server_host, server_port = server.server_address
-    return f'http://{server_host}:{server_port}/'
+    return f'http://{server_host}:{server_port}/alert'

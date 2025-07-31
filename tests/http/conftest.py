@@ -20,8 +20,8 @@ def make_server():
         config = HttpConfig(
             host,
             port,
+            clearsecret='test_secret',
             api_tokens=api_tokens,
-            channel_tokens_to_channel_names={},
         )
 
         server = create_server(config)

@@ -11,7 +11,7 @@ Configuration loading
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 
@@ -54,6 +54,7 @@ class HttpConfig:
     host: str
     port: int
     clearsecret: str
+    api_tokens: set[str] = field(default_factory=set)
 
 
 @dataclass(frozen=True)
@@ -120,8 +121,9 @@ def _get_http_config(data: dict[str, Any]) -> HttpConfig:
     host = data_http.get('host', DEFAULT_HTTP_HOST)
     port = int(data_http.get('port', DEFAULT_HTTP_PORT))
     clearsecret = data_http.get('clearsecret', DEFAULT_HTTP_CLEARSECRET)
+    api_tokens = set(data_http.get('api_tokens', []))
 
-    return HttpConfig(host, port, clearsecret)
+    return HttpConfig(host, port, clearsecret, api_tokens)
 
 
 def _get_meshtastic_config(data: dict[str, Any]) -> MeshtasticConfig:

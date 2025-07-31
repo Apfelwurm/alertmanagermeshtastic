@@ -8,6 +8,12 @@ statustimeshift = 2     # this time in hours will be added to the "status" time 
 host = "127.0.0.1"
 port = 9119
 clearsecret = "your_secret_key"
+# Optional: API tokens for authentication. Remove or leave empty to disable authentication.
+# Generate tokens with: python -m alertmanagermeshtastic.tokencli
+api_tokens = [
+    # "gAT3KHqpb94YQ7IMhR-qMH5tRquwLnHoyik_lZItTQY",
+    # "qeV4Jf_PYxAySktCODORTKSH1gs117qJXwoqg5YoDBU"
+]
 
 [meshtastic.connection]
 tty = "/tmp/vcom0"

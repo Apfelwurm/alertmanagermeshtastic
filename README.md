@@ -25,6 +25,56 @@ Thanks to [GUVWAF](https://github.com/GUVWAF) for the support and thanks to the 
 	    send_resolved: true
 ```
 
+## API Token Authentication (Optional)
+
+For security, you can enable API token authentication to restrict access to the `/alert` endpoint. When API tokens are configured, all requests to the `/alert` endpoint must include a valid `Authorization: Token <token>` header.
+
+### Generating API Tokens
+
+Use the built-in token generator to create secure tokens:
+
+```bash
+python -m alertmanagermeshtastic.tokencli
+```
+
+This will generate a cryptographically secure, URL-safe token like:
+```
+gAT3KHqpb94YQ7IMhR-qMH5tRquwLnHoyik_lZItTQY
+```
+
+### Configuring API Tokens
+
+Add the generated tokens to your `config.toml`:
+
+```toml
+[http]
+host = "0.0.0.0"
+port = 9119
+clearsecret = "your_secret_key"
+api_tokens = [
+    "gAT3KHqpb94YQ7IMhR-qMH5tRquwLnHoyik_lZItTQY",
+    "qeV4Jf_PYxAySktCODORTKSH1gs117qJXwoqg5YoDBU"
+]
+```
+
+### Using API Tokens with Alertmanager
+
+Configure Alertmanager to include the token in webhook requests:
+
+```yaml
+receivers:
+- name: 'meshtastic-webhook'
+  webhook_configs:
+  - url: http://alertmanager-meshtastic:9119/alert
+    send_resolved: true
+    http_config:
+      authorization:
+        type: Token
+        credentials: "gAT3KHqpb94YQ7IMhR-qMH5tRquwLnHoyik_lZItTQY"
+```
+
+**Note:** The `/metrics` and `/clear_queue` endpoints do not require authentication and remain publicly accessible for monitoring and management purposes.
+
 ## config.toml example
 
 This is an example config, that shows all of the config options.
