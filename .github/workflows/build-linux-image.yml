@@ -29,18 +29,31 @@ jobs:
         uses: docker/setup-qemu-action@v3.2.0
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.7.1
-      - name: Build Linux Image
+      - name: Build Linux Image (Dev)
+        if: ${{ github.ref == 'refs/heads/dev' }}
+        uses: docker/build-push-action@v6.9.0
+        with:
+          context: .
+          file: Dockerfile
+          tags: apfelwurm/alertmanagermeshtastic:dev
+          build-args: |
+            BUILDNODE=GitHub (Run Number: ${{ github.run_number }} Run ID: ${{ github.run_id }})
+            SOURCE_COMMIT=${{ github.sha }}
+            VERSION=dev
+          no-cache: true
+      - name: Build Linux Image (Release)
+        if: ${{ github.ref != 'refs/heads/dev' }}
         uses: docker/build-push-action@v6.9.0
         with:
           context: .
           file: Dockerfile
           tags: |
-            ${{ github.ref == 'refs/heads/dev' && 'apfelwurm/alertmanagermeshtastic:dev' || 'apfelwurm/alertmanagermeshtastic:latest' }}
-            ${{ github.ref != 'refs/heads/dev' && format('apfelwurm/alertmanagermeshtastic:{0}', github.event.client_payload.next_release_tag) || '' }}
+            apfelwurm/alertmanagermeshtastic:latest
+            apfelwurm/alertmanagermeshtastic:${{ github.event.client_payload.next_release_tag }}
           build-args: |
             BUILDNODE=GitHub (Run Number: ${{ github.run_number }} Run ID: ${{ github.run_id }})
             SOURCE_COMMIT=${{ github.sha }}
-            VERSION=${{ github.ref == 'refs/heads/dev' && 'dev' || github.event.client_payload.next_release_tag }}
+            VERSION=${{ github.event.client_payload.next_release_tag }}
           no-cache: true
       - name: Login to DockerHub
         if: ${{ github.event_name != 'pull_request' }}
@@ -48,12 +61,11 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Push to Docker HUB
-        if: ${{ github.event_name != 'pull_request' }}
+      - name: Push to Docker HUB (Dev)
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/dev' }}
+        run: docker push apfelwurm/alertmanagermeshtastic:dev
+      - name: Push to Docker HUB (Release)
+        if: ${{ github.event_name != 'pull_request' && github.ref != 'refs/heads/dev' }}
         run: |
-          if [ "${{ github.ref }}" = "refs/heads/dev" ]; then
-            docker push apfelwurm/alertmanagermeshtastic:dev
-          else
-            docker push apfelwurm/alertmanagermeshtastic:latest
-            docker push apfelwurm/alertmanagermeshtastic:${{ github.event.client_payload.next_release_tag }}
-          fi
+          docker push apfelwurm/alertmanagermeshtastic:latest
+          docker push apfelwurm/alertmanagermeshtastic:${{ github.event.client_payload.next_release_tag }}
