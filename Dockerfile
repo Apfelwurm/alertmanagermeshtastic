@@ -1,4 +1,4 @@
-FROM python:3.12-slim AS builder
+FROM python:3.13-slim AS builder
 ARG VERSION=0.01-dev1
 WORKDIR /workdir
 
@@ -11,7 +11,7 @@ RUN sed -i "s|0.01-dev1|$VERSION|g" src/alertmanagermeshtastic/__init__.py
 RUN python3 -m pip install --upgrade build && python3 -m build
 
 
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 WORKDIR /app
 

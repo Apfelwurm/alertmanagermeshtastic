@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "setuptools >= 51.1.2",
+    "setuptools >= 70.0.0",
     "wheel",
 ]
 build-backend = "setuptools.build_meta"
@@ -8,10 +8,10 @@ build-backend = "setuptools.build_meta"
 [tool.black]
 line-length = 80
 skip-string-normalization = true
-target-version = [ "py37" ]
+target-version = [ "py39", "py310", "py311", "py312", "py313" ]
 
 [tool.mypy]
-python_version = "3.7"
+python_version = "3.9"
 ignore_missing_imports = true
 no_implicit_optional = true
 
