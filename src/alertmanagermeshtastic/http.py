@@ -10,6 +10,7 @@ HTTP server to receive messages
 """
 
 from __future__ import annotations
+import base64
 from http import HTTPStatus
 import logging
 import sys
@@ -32,12 +33,12 @@ from .util import start_thread
 logger = logging.getLogger(__name__)
 
 
-def create_app(clearsecret) -> Application:
-    return Application(clearsecret=clearsecret)
+def create_app(config: HttpConfig) -> Application:
+    return Application(config=config)
 
 
 class Application:
-    def __init__(self, clearsecret) -> None:
+    def __init__(self, config: HttpConfig) -> None:
         self._url_map = Map(
             [
                 Rule('/alert', endpoint='alert', methods=['POST']),
@@ -46,7 +47,7 @@ class Application:
             ]
         )
         self.queue_size = 0  # Initialize queue size
-        self.clearsecret = clearsecret
+        self.config = config
         self.meshtastic_connected = False
         self.connect_to_signals()
         # Signals are allowed be sent from here on.
@@ -62,6 +63,34 @@ class Application:
 
     def update_queue_size(self, queue_size: int) -> None:  # Define a new method
         self.queue_size = queue_size
+
+    def _check_basic_auth(self, request: Request) -> bool:
+        """Check basic authentication credentials."""
+        if not self.config.basic_auth_username or not self.config.basic_auth_password:
+            return True  # No auth configured, allow access
+        
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Basic '):
+            return False
+        
+        try:
+            # Decode the basic auth credentials
+            encoded_credentials = auth_header[6:]  # Remove "Basic "
+            decoded_credentials = base64.b64decode(encoded_credentials).decode('utf-8')
+            username, password = decoded_credentials.split(':', 1)
+            
+            return (username == self.config.basic_auth_username and 
+                    password == self.config.basic_auth_password)
+        except (ValueError, UnicodeDecodeError):
+            return False
+
+    def _require_basic_auth(self, request: Request) -> Response | None:
+        """Return 401 response if basic auth fails, None if auth succeeds."""
+        if not self._check_basic_auth(request):
+            response = Response('Unauthorized', status=HTTPStatus.UNAUTHORIZED)
+            response.headers['WWW-Authenticate'] = 'Basic realm="alertmanagermeshtastic"'
+            return response
+        return None
 
     def __call__(self, environ, start_response):
         return self.wsgi_app(environ, start_response)
@@ -82,6 +111,11 @@ class Application:
             return exc
 
     def on_alert(self, request: Request) -> Response:
+        # Check basic authentication first
+        auth_response = self._require_basic_auth(request)
+        if auth_response:
+            return auth_response
+        
         try:
             data = _extract_payload(request, {'alerts'})
 
@@ -96,7 +130,7 @@ class Application:
     def on_clearqueue(self, request):
         try:
             secret = request.args.get('secret')
-            if secret != self.clearsecret:
+            if secret != self.config.clearsecret:
                 return Response('Forbidden', status=HTTPStatus.FORBIDDEN)
 
             clear_queue_issued.send()
@@ -143,7 +177,7 @@ ServerHandler.server_software = 'alertmanagermeshtastic'
 
 def create_server(config: HttpConfig) -> WSGIServer:
     """Create the HTTP server."""
-    app = create_app(config.clearsecret)
+    app = create_app(config)
 
     return make_server(config.host, config.port, app)
 

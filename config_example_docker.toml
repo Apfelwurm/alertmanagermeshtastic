@@ -6,10 +6,12 @@ statustimeshift = 2     # this time in hours will be added to the "status" time 
 host = "0.0.0.0"
 port = 9119
 clearsecret = "your_secret_key"
+# Optional basic authentication for /alert endpoint
+# basic_auth_username = "alertmanager"
+# basic_auth_password = "your_password"
 
 [meshtastic.connection]
 tty = "/dev/ttyACM0"
 nodeid = 123456789
 maxsendingattempts = 30
 timeout = 60
-

@@ -54,6 +54,8 @@ class HttpConfig:
     host: str
     port: int
     clearsecret: str
+    basic_auth_username: Optional[str] = None
+    basic_auth_password: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -120,8 +122,10 @@ def _get_http_config(data: dict[str, Any]) -> HttpConfig:
     host = data_http.get('host', DEFAULT_HTTP_HOST)
     port = int(data_http.get('port', DEFAULT_HTTP_PORT))
     clearsecret = data_http.get('clearsecret', DEFAULT_HTTP_CLEARSECRET)
+    basic_auth_username = data_http.get('basic_auth_username')
+    basic_auth_password = data_http.get('basic_auth_password')
 
-    return HttpConfig(host, port, clearsecret)
+    return HttpConfig(host, port, clearsecret, basic_auth_username, basic_auth_password)
 
 
 def _get_meshtastic_config(data: dict[str, Any]) -> MeshtasticConfig:
