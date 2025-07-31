@@ -25,6 +25,15 @@ Thanks to [GUVWAF](https://github.com/GUVWAF) for the support and thanks to the 
 	    send_resolved: true
 ```
 
+For basic authentication:
+```
+	receivers:
+	- name: 'meshtastic-webhook'
+	  webhook_configs:
+	  - url: http://username:password@alertmanager-meshtastic:9119/alert
+	    send_resolved: true
+```
+
 ## config.toml example
 
 This is an example config, that shows all of the config options.
@@ -40,12 +49,42 @@ statustimeshift = 2     # this time in hours will be added to the "status" time 
 host = "0.0.0.0"
 port = 9119
 clearsecret = "your_secret_key"
+# Optional basic authentication for /alert endpoint
+# basic_auth_username = "alertmanager"
+# basic_auth_password = "your_password"
 
 [meshtastic.connection]
 tty = "/tmp/vcom0"
 nodeid = 631724152
 maxsendingattempts = 30
 timeout = 60
+```
+
+## Basic Authentication
+
+To secure the `/alert` endpoint with HTTP Basic Authentication, add the following options to your config:
+
+```toml
+[http]
+host = "0.0.0.0"
+port = 9119
+clearsecret = "your_secret_key"
+basic_auth_username = "alertmanager"
+basic_auth_password = "your_secure_password"
+```
+
+When basic authentication is configured:
+- The `/alert` endpoint will require valid credentials
+- The `/metrics` endpoint remains accessible without authentication
+- The `/clear_queue` endpoint continues to use its secret-based authentication
+
+Configure Alertmanager to send authenticated requests:
+```yaml
+receivers:
+- name: 'meshtastic-webhook'
+  webhook_configs:
+  - url: http://alertmanager:your_secure_password@alertmanager-meshtastic:9119/alert
+    send_resolved: true
 ```
 
 

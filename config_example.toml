@@ -8,6 +8,9 @@ statustimeshift = 2     # this time in hours will be added to the "status" time 
 host = "127.0.0.1"
 port = 9119
 clearsecret = "your_secret_key"
+# Optional basic authentication for /alert endpoint
+# basic_auth_username = "alertmanager"
+# basic_auth_password = "your_password"
 
 [meshtastic.connection]
 tty = "/tmp/vcom0"
