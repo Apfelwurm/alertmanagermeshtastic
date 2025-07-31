@@ -50,7 +50,7 @@ jobs:
       #     no-cache: true
       - name: Build and Push Linux Image (Dev)
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
-        uses: docker/build-push-action@v6.9.0
+        uses: docker/build-push-action@v6.18.0
         with:
           context: .
           file: Dockerfile
@@ -63,7 +63,7 @@ jobs:
           no-cache: true
       - name: Build and Push Linux Image (Release)
         if: ${{ github.event_name == 'repository_dispatch' }}
-        uses: docker/build-push-action@v6.9.0
+        uses: docker/build-push-action@v6.18.0
         with:
           context: .
           file: Dockerfile
