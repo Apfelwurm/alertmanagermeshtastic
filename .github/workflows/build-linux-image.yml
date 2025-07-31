@@ -59,7 +59,7 @@ jobs:
           build-args: |
             BUILDNODE=GitHub (Run Number: ${{ github.run_number }} Run ID: ${{ github.run_id }})
             SOURCE_COMMIT=${{ github.sha }}
-            VERSION=dev
+            VERSION=0.01-dev1
           no-cache: true
       - name: Build and Push Linux Image (Release)
         if: ${{ github.event_name == 'repository_dispatch' }}
