@@ -29,19 +29,39 @@ jobs:
         uses: docker/setup-qemu-action@v3.2.0
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.7.1
-      - name: Build Linux Image (Dev)
+      - name: Login to DockerHub
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: docker/login-action@v3.3.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # - name: Build Linux Image (PR)
+      #   if: ${{ github.event_name == 'pull_request' }}
+      #   uses: docker/build-push-action@v6.9.0
+      #   with:
+      #     context: .
+      #     file: Dockerfile
+      #     tags: apfelwurm/alertmanagermeshtastic:pr-${{ github.event.number }}
+      #     load: true
+      #     build-args: |
+      #       BUILDNODE=GitHub (Run Number: ${{ github.run_number }} Run ID: ${{ github.run_id }})
+      #       SOURCE_COMMIT=${{ github.sha }}
+      #       VERSION=pr-${{ github.event.number }}
+      #     no-cache: true
+      - name: Build and Push Linux Image (Dev)
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
         uses: docker/build-push-action@v6.9.0
         with:
           context: .
           file: Dockerfile
           tags: apfelwurm/alertmanagermeshtastic:dev
+          push: true
           build-args: |
             BUILDNODE=GitHub (Run Number: ${{ github.run_number }} Run ID: ${{ github.run_id }})
             SOURCE_COMMIT=${{ github.sha }}
             VERSION=dev
           no-cache: true
-      - name: Build Linux Image (Release)
+      - name: Build and Push Linux Image (Release)
         if: ${{ github.event_name == 'repository_dispatch' }}
         uses: docker/build-push-action@v6.9.0
         with:
@@ -50,22 +70,9 @@ jobs:
           tags: |
             apfelwurm/alertmanagermeshtastic:latest
             apfelwurm/alertmanagermeshtastic:${{ github.event.client_payload.next_release_tag }}
+          push: true
           build-args: |
             BUILDNODE=GitHub (Run Number: ${{ github.run_number }} Run ID: ${{ github.run_id }})
             SOURCE_COMMIT=${{ github.sha }}
             VERSION=${{ github.event.client_payload.next_release_tag }}
           no-cache: true
-      - name: Login to DockerHub
-        if: ${{ github.event_name != 'pull_request' }}
-        uses: docker/login-action@v3.3.0
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Push to Docker HUB (Dev)
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
-        run: docker push apfelwurm/alertmanagermeshtastic:dev
-      - name: Push to Docker HUB (Release)
-        if: ${{ github.event_name == 'repository_dispatch' }}
-        run: |
-          docker push apfelwurm/alertmanagermeshtastic:latest
-          docker push apfelwurm/alertmanagermeshtastic:${{ github.event.client_payload.next_release_tag }}
