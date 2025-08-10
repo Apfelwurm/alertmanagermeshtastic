@@ -57,10 +57,7 @@ class MeshtasticAnnouncer(Announcer):
         self.generalconfig = generalconfig
 
         self.meshtasticinterface = _create_meshtasticinterface(connection)
-        # Track last ack/nak with metadata for correlation in multi-node scenarios
-        self._last_ack: dict | None = (
-            None  # {'nodeid': int, 'time': float, 'type': 'ack'|'nak'|'implAck'}
-        )
+        # Removed per-node ack correlation state; we now use canonical global acknowledgment pattern
 
     def _onconnect(self, topic=pub.AUTO_TOPIC, interface=None):
         meshtastic_connected.send(True)
@@ -135,7 +132,6 @@ class MeshtasticAnnouncer(Announcer):
         try:
             try:
                 message = self.formatalert(alert)
-
             except Exception as e:
                 logger.error(
                     "\t [%s][%d][node:%d] Message formatting failed: %s",
@@ -156,7 +152,6 @@ class MeshtasticAnnouncer(Announcer):
                     nodeid,
                     total_chunks,
                 )
-
             except Exception as e:
                 logger.error(
                     "\t [%s][%d][node:%d] could not split in chunks: %s",
@@ -167,7 +162,6 @@ class MeshtasticAnnouncer(Announcer):
                 )
                 raise
 
-            # Send to specific nodeid
             logger.debug(
                 "\t [%s][%d] sending to nodeid %d",
                 alert["fingerprint"],
@@ -189,133 +183,55 @@ class MeshtasticAnnouncer(Announcer):
                         while not hasattr(self, 'meshtasticinterface'):
                             time.sleep(2)
 
-                        # IMPORTANT: Reset acknowledgment flags BEFORE sending so a stale ACK
-                        # from a previous node/chunk does not cause a false positive.
+                        # Canonical pattern: reset acknowledgment before send
                         try:
                             self.meshtasticinterface._acknowledgment.reset()
                         except Exception:
                             pass
 
-                        send_start = time.time()
-
-                        # Wrap the node's onAckNak so we can record which node produced the ack
-                        node = self.meshtasticinterface.getNode(nodeid, False)
-                        original_onAckNak = getattr(node, 'onAckNak', None)
-
-                        def _wrapped_onAckNak(
-                            p, _node=node
-                        ):  # p is packet dict from lib
-                            # Call original first to set flags
-                            if original_onAckNak:
-                                original_onAckNak(p)
-                            # Record metadata
-                            ack_type = (
-                                'nak'
-                                if self.meshtasticinterface._acknowledgment.receivedNak
-                                else (
-                                    'implAck'
-                                    if self.meshtasticinterface._acknowledgment.receivedImplAck
-                                    else (
-                                        'ack'
-                                        if self.meshtasticinterface._acknowledgment.receivedAck
-                                        else 'other'
-                                    )
-                                )
-                            )
-                            self._last_ack = {
-                                'nodeid': (
-                                    _node.nodeNum
-                                    if hasattr(_node, 'nodeNum')
-                                    else nodeid
-                                ),
-                                'time': time.time(),
-                                'type': ack_type,
-                            }
-
                         self.meshtasticinterface.sendText(
-                            text=str(alert["qn"])
-                            + ":"
-                            + str(index + 1)
-                            + "/"
-                            + str(total_chunks)
-                            + "\n"
-                            + chunk,
+                            text=f"{alert['qn']}:{index + 1}/{total_chunks}\n{chunk}",
                             destinationId=nodeid,
                             wantAck=True,
                             wantResponse=False,
-                            onResponse=_wrapped_onAckNak,
+                            onResponse=None,
                         )
 
                         ack = False
-
-                        # Check acknowledgment until Nak, Ack or ImplAck is set or timeout is reached
                         start_time = time.time()
+                        a = self.meshtasticinterface._acknowledgment
+                        # Poll until ack/nak or timeout
                         while (
                             time.time() - start_time < self.connection.timeout
                         ):
-                            a = self.meshtasticinterface._acknowledgment
-                            if (
-                                a.receivedAck
-                                or a.receivedImplAck
-                                or a.receivedNak
-                            ):
-                                # Correlate: ensure last ack belongs to this node & after send_start
-                                if (
-                                    self._last_ack
-                                    and self._last_ack.get('time', 0)
-                                    >= send_start
-                                    and self._last_ack.get('nodeid')
-                                    in (
-                                        nodeid,
-                                        getattr(node, 'nodeNum', nodeid),
-                                    )
-                                ):
-                                    if a.receivedAck or a.receivedImplAck:
-                                        ack = True
-                                    break
-                                else:
-                                    # Foreign or stale ack; ignore and continue waiting
-                                    logger.debug(
-                                        "\t [%s][%d][%d][%d] ignoring stale/foreign ack (meta=%s)",
-                                        alert["fingerprint"],
-                                        alert["qn"],
-                                        nodeid,
-                                        index,
-                                        self._last_ack,
-                                    )
-                                    try:
-                                        a.reset()
-                                    except Exception:
-                                        pass
+                            if a.receivedAck or a.receivedImplAck:
+                                ack = True
+                                break
+                            if a.receivedNak:
+                                break  # explicit failure
                             time.sleep(0.3)
 
-                        # After waiting, reset acknowledgment state for next attempt
+                        # Always reset after check (library does this in some helpers, we keep symmetry)
                         try:
-                            self.meshtasticinterface._acknowledgment.reset()
+                            a.reset()
                         except Exception:
                             pass
 
                         if ack:
                             logger.debug(
-                                "\t [%s][%d][%d][%d] got correlated ack (type=%s) on attempt %d (elapsed %.2fs)",
+                                "\t [%s][%d][%d][%d] got ack on attempt %d (elapsed %.2fs)",
                                 alert["fingerprint"],
                                 alert["qn"],
                                 nodeid,
                                 index,
-                                (
-                                    self._last_ack.get('type')
-                                    if self._last_ack
-                                    else 'unknown'
-                                ),
                                 attempt,
-                                time.time() - send_start,
+                                time.time() - start_time,
                             )
                         else:
                             raise MeshtasticTimeoutError(
-                                "No correlated ack received from meshtastic within the timeout"
+                                "No ack received from meshtastic within the timeout"
                             )
-
-                        break
+                        break  # chunk sent
                     except Exception as e:
                         logger.error(
                             "\t [%s][%d][%d][%d] failed on attempt %d with error: %s",
@@ -328,7 +244,6 @@ class MeshtasticAnnouncer(Announcer):
                         )
                         if attempt == self.connection.maxsendingattempts - 1:
                             raise
-
         except Exception as e:
             logger.error(
                 "\t [%s][%d][node:%d] send Attempt failed with error: %s",
