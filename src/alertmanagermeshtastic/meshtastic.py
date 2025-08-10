@@ -55,9 +55,7 @@ class MeshtasticAnnouncer(Announcer):
     ) -> None:
         self.connection = connection
         self.generalconfig = generalconfig
-
         self.meshtasticinterface = _create_meshtasticinterface(connection)
-        # Removed per-node ack correlation state; we now use canonical global acknowledgment pattern
 
     def _onconnect(self, topic=pub.AUTO_TOPIC, interface=None):
         meshtastic_connected.send(True)
@@ -74,7 +72,7 @@ class MeshtasticAnnouncer(Announcer):
                 logger.error("Closing interface...")
                 self.meshtasticinterface.close()
                 logger.error("Interface Closed!")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error("Failed to close meshtastic interface: %s", e)
             finally:
                 logger.error("Deleting Interface...")
@@ -89,7 +87,7 @@ class MeshtasticAnnouncer(Announcer):
                 )
                 logger.error("interface recreated!")
                 break
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(
                     "\t Connnection to meshtastic failed with error: %s , retry in 2 seconds",
                     e,
@@ -116,7 +114,7 @@ class MeshtasticAnnouncer(Announcer):
         for nodeid in self.connection.nodeids:
             try:
                 self.announce_to_node(alert, nodeid)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(
                     "\t [%s][%d][node:%d] Failed to send to node: %s",
                     alert["fingerprint"],
@@ -127,126 +125,137 @@ class MeshtasticAnnouncer(Announcer):
                 # Continue to next node instead of failing entirely
                 continue
 
-    def announce_to_node(self, alert: dict, nodeid: int) -> None:
-        """Announce a message to a specific node."""
+    # ---------------- Internal helpers for sending/acks -----------------
+    def _send_chunk_with_ack(
+        self, nodeid: int, header: str, payload: str, attempt: int, index: int
+    ) -> None:
+        """Send one chunk and wait ONLY for an explicit remote ACK.
+
+        We intentionally IGNORE implicit ACKs (receivedImplAck) because they only
+        confirm local transmission, not reception by the destination node. This
+        prevents false positives when the target node is powered off or unreachable.
+        """
+        # Reset ack flags before send
         try:
-            try:
-                message = self.formatalert(alert)
-            except Exception as e:
-                logger.error(
-                    "\t [%s][%d][node:%d] Message formatting failed: %s",
-                    alert["fingerprint"],
-                    alert["qn"],
-                    nodeid,
-                    e,
-                )
-                raise
+            self.meshtasticinterface._acknowledgment.reset()  # noqa: SLF001
+        except Exception:  # noqa: BLE001
+            pass
 
-            try:
-                chunks = self.splitmessagesifnessecary(message, alert)
-                total_chunks = len(chunks)
+        # Use the node's onAckNak handler so acknowledgment flags get set correctly
+        node = self.meshtasticinterface.getNode(nodeid, False)
+        text = f"{header}\n{payload}"
+        self.meshtasticinterface.sendText(
+            text=text,
+            destinationId=nodeid,
+            wantAck=True,
+            wantResponse=False,
+            onResponse=node.onAckNak,
+        )
+
+        a = self.meshtasticinterface._acknowledgment  # noqa: SLF001
+        start_time = time.time()
+        saw_impl = False
+        while True:
+            elapsed = time.time() - start_time
+            if a.receivedAck:
                 logger.debug(
-                    "\t [%s][%d][node:%d] splitted in %d chunks",
-                    alert["fingerprint"],
-                    alert["qn"],
+                    "\t [node:%d][idx:%d] explicit ACK after %.2fs (attempt %d)",
                     nodeid,
-                    total_chunks,
+                    index,
+                    elapsed,
+                    attempt,
                 )
-            except Exception as e:
-                logger.error(
-                    "\t [%s][%d][node:%d] could not split in chunks: %s",
-                    alert["fingerprint"],
-                    alert["qn"],
+                break
+            if a.receivedNak:
+                logger.debug(
+                    "\t [node:%d][idx:%d] NAK after %.2fs (attempt %d)",
                     nodeid,
-                    e,
+                    index,
+                    elapsed,
+                    attempt,
                 )
-                raise
-
-            logger.debug(
-                "\t [%s][%d] sending to nodeid %d",
-                alert["fingerprint"],
-                alert["qn"],
-                nodeid,
-            )
-
-            for index, chunk in enumerate(chunks):
-                for attempt in range(self.connection.maxsendingattempts):
+                raise MeshtasticTimeoutError("Received NAK from node")
+            if a.receivedImplAck and not saw_impl:
+                saw_impl = True
+                logger.debug(
+                    "\t [node:%d][idx:%d] implicit ACK observed (still waiting for explicit) attempt %d",
+                    nodeid,
+                    index,
+                    attempt,
+                )
+            if elapsed >= self.connection.timeout:
+                # Timeout without explicit ack
+                if saw_impl:
                     logger.debug(
-                        "\t [%s][%d][%d][%d] sending attempt %d ",
+                        "\t [node:%d][idx:%d] timeout after implicit ACK only (no explicit received)",
+                        nodeid,
+                        index,
+                    )
+                raise MeshtasticTimeoutError(
+                    "No explicit ACK received within timeout"
+                )
+            time.sleep(0.25)
+        # reset after handling
+        try:
+            a.reset()
+        except Exception:  # noqa: BLE001
+            pass
+
+    def _send_chunks(self, alert: dict, nodeid: int, chunks: list[str]) -> None:
+        total = len(chunks)
+        for index, chunk in enumerate(chunks):
+            header = f"{alert['qn']}:{index + 1}/{total}"
+            success = False
+            for attempt in range(self.connection.maxsendingattempts):
+                logger.debug(
+                    "\t [%s][%d][node:%d][%d/%d] attempt %d",
+                    alert["fingerprint"],
+                    alert["qn"],
+                    nodeid,
+                    index + 1,
+                    total,
+                    attempt,
+                )
+                try:
+                    self._send_chunk_with_ack(
+                        nodeid, header, chunk, attempt, index
+                    )
+                    success = True
+                    break
+                except Exception as e:  # noqa: BLE001
+                    logger.error(
+                        "\t [%s][%d][%d][%d] failed attempt %d: %s",
                         alert["fingerprint"],
                         alert["qn"],
                         nodeid,
                         index,
                         attempt,
+                        e,
                     )
-                    try:
-                        while not hasattr(self, 'meshtasticinterface'):
-                            time.sleep(2)
+                    if attempt == self.connection.maxsendingattempts - 1:
+                        raise
+                    time.sleep(1)
+            if not success:
+                raise MeshtasticTimeoutError(
+                    f"Chunk {index + 1}/{total} to node {nodeid} failed"
+                )
 
-                        # Canonical pattern: reset acknowledgment before send
-                        try:
-                            self.meshtasticinterface._acknowledgment.reset()
-                        except Exception:
-                            pass
-
-                        self.meshtasticinterface.sendText(
-                            text=f"{alert['qn']}:{index + 1}/{total_chunks}\n{chunk}",
-                            destinationId=nodeid,
-                            wantAck=True,
-                            wantResponse=False,
-                            onResponse=None,
-                        )
-
-                        ack = False
-                        start_time = time.time()
-                        a = self.meshtasticinterface._acknowledgment
-                        # Poll until ack/nak or timeout
-                        while (
-                            time.time() - start_time < self.connection.timeout
-                        ):
-                            if a.receivedAck or a.receivedImplAck:
-                                ack = True
-                                break
-                            if a.receivedNak:
-                                break  # explicit failure
-                            time.sleep(0.3)
-
-                        # Always reset after check (library does this in some helpers, we keep symmetry)
-                        try:
-                            a.reset()
-                        except Exception:
-                            pass
-
-                        if ack:
-                            logger.debug(
-                                "\t [%s][%d][%d][%d] got ack on attempt %d (elapsed %.2fs)",
-                                alert["fingerprint"],
-                                alert["qn"],
-                                nodeid,
-                                index,
-                                attempt,
-                                time.time() - start_time,
-                            )
-                        else:
-                            raise MeshtasticTimeoutError(
-                                "No ack received from meshtastic within the timeout"
-                            )
-                        break  # chunk sent
-                    except Exception as e:
-                        logger.error(
-                            "\t [%s][%d][%d][%d] failed on attempt %d with error: %s",
-                            alert["fingerprint"],
-                            alert["qn"],
-                            nodeid,
-                            index,
-                            attempt,
-                            e,
-                        )
-                        if attempt == self.connection.maxsendingattempts - 1:
-                            raise
-        except Exception as e:
+    # ---------------- Public per-node send -----------------
+    def announce_to_node(self, alert: dict, nodeid: int) -> None:
+        try:
+            message = self.formatalert(alert)
+            chunks = self.splitmessagesifnessecary(message, alert)
+            logger.debug(
+                "\t [%s][%d][node:%d] %d chunk(s) prepared",
+                alert["fingerprint"],
+                alert["qn"],
+                nodeid,
+                len(chunks),
+            )
+            self._send_chunks(alert, nodeid, chunks)
+        except Exception as e:  # noqa: BLE001
             logger.error(
-                "\t [%s][%d][node:%d] send Attempt failed with error: %s",
+                "\t [%s][%d][node:%d] send Attempt failed: %s",
                 alert["fingerprint"],
                 alert["qn"],
                 nodeid,
@@ -262,18 +271,16 @@ class MeshtasticAnnouncer(Announcer):
                 alert["fingerprint"],
                 alert["qn"],
             )
-            chunks = [
+            return [
                 message[i : i + chunk_size]
                 for i in range(0, len(message), chunk_size)
             ]
-            return chunks
-        else:
-            logger.debug(
-                "\t [%s][%d] Message size okay",
-                alert["fingerprint"],
-                alert["qn"],
-            )
-            return [message]
+        logger.debug(
+            "\t [%s][%d] Message size okay",
+            alert["fingerprint"],
+            alert["qn"],
+        )
+        return [message]
 
     def formatalert(self, alert: dict):
         message = (
@@ -336,7 +343,7 @@ def _create_meshtasticinterface(
             meshtasticinterface = Meshtasticinterface(connection.tty)
             logger.info("interface recreated!")
             break
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(
                 "\t Connnection to meshtastic failed with error: %s , retry in 2 seconds",
                 e,
