@@ -17,3 +17,9 @@ nodeid = 631724152
 # nodeids = [631724152, 123456789, 987654321]
 maxsendingattempts = 30
 timeout = 60
+
+# Node failure handling (optional, defaults shown)
+failure_threshold = 3    # Number of failures before node is temporarily skipped
+base_backoff_time = 30   # Initial backoff time in seconds
+max_backoff_time = 300   # Maximum backoff time in seconds (5 minutes)
+backoff_multiplier = 2   # Exponential backoff multiplier

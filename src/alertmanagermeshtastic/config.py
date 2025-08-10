@@ -23,6 +23,10 @@ DEFAULT_HTTP_CLEARSECRET = 'your_secret_key'
 DEFAULT_MESHTASTIC_NODEID = 123456789
 DEFAULT_MESHTASTIC_MAXSENDINGATTEMPTS = 5
 DEFAULT_MESHTASTIC_TIMEOUT = 60
+DEFAULT_MESHTASTIC_FAILURE_THRESHOLD = 3
+DEFAULT_MESHTASTIC_BASE_BACKOFF_TIME = 30
+DEFAULT_MESHTASTIC_MAX_BACKOFF_TIME = 300
+DEFAULT_MESHTASTIC_BACKOFF_MULTIPLIER = 2
 DEFAULT_GENERAL_INPUTTIMESHIFT = 2
 DEFAULT_GENERAL_STATUSTIMESHIFT = 2
 
@@ -61,10 +65,14 @@ class MeshtasticConnection:
     """An MESHTASTIC connection."""
 
     tty: str
-    nodeids: list[int] = None
+    nodeids: Optional[list[int]] = None
     maxsendingattempts: int = DEFAULT_MESHTASTIC_MAXSENDINGATTEMPTS
     timeout: int = DEFAULT_MESHTASTIC_TIMEOUT
-    
+    failure_threshold: int = DEFAULT_MESHTASTIC_FAILURE_THRESHOLD
+    base_backoff_time: int = DEFAULT_MESHTASTIC_BASE_BACKOFF_TIME
+    max_backoff_time: int = DEFAULT_MESHTASTIC_MAX_BACKOFF_TIME
+    backoff_multiplier: int = DEFAULT_MESHTASTIC_BACKOFF_MULTIPLIER
+
     def __post_init__(self):
         # Ensure nodeids is always a list, default to single node if not provided
         if self.nodeids is None:
@@ -146,8 +154,22 @@ def _get_meshtastic_connection(
     if data_connection is None:
         return None
 
-    maxsendingattempts = data_connection.get('maxsendingattempts')
-    timeout = data_connection.get('timeout')
+    maxsendingattempts = data_connection.get(
+        'maxsendingattempts', DEFAULT_MESHTASTIC_MAXSENDINGATTEMPTS
+    )
+    timeout = data_connection.get('timeout', DEFAULT_MESHTASTIC_TIMEOUT)
+    failure_threshold = data_connection.get(
+        'failure_threshold', DEFAULT_MESHTASTIC_FAILURE_THRESHOLD
+    )
+    base_backoff_time = data_connection.get(
+        'base_backoff_time', DEFAULT_MESHTASTIC_BASE_BACKOFF_TIME
+    )
+    max_backoff_time = data_connection.get(
+        'max_backoff_time', DEFAULT_MESHTASTIC_MAX_BACKOFF_TIME
+    )
+    backoff_multiplier = data_connection.get(
+        'backoff_multiplier', DEFAULT_MESHTASTIC_BACKOFF_MULTIPLIER
+    )
     tty = data_connection.get('tty')
     if not tty:
         return None
@@ -174,4 +196,8 @@ def _get_meshtastic_connection(
         nodeids=nodeids,
         maxsendingattempts=maxsendingattempts,
         timeout=timeout,
+        failure_threshold=failure_threshold,
+        base_backoff_time=base_backoff_time,
+        max_backoff_time=max_backoff_time,
+        backoff_multiplier=backoff_multiplier,
     )
