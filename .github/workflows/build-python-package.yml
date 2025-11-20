@@ -35,7 +35,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: replace version
         run: sed -i 's|0.01-dev1|${{ github.event.client_payload.next_release_tag }}|g' src/alertmanagermeshtastic/__init__.py
